@@ -1,4 +1,4 @@
-package com.sergiocruz.bakingapp;
+package com.sergiocruz.bakingapp.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.activities.MainActivity;
+import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.dummy.DummyContent;
 
 /**

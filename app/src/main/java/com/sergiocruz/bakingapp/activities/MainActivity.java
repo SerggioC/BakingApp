@@ -1,4 +1,4 @@
-package com.sergiocruz.bakingapp;
+package com.sergiocruz.bakingapp.activities;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -11,7 +11,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.TextView;
 
+import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.RecipeAdapter;
 import com.sergiocruz.bakingapp.dummy.DummyContent;
+import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 /**
  * An activity representing a list of recipes. This activity
@@ -47,10 +50,6 @@ public class MainActivity extends AppCompatActivity {
         getDataFromInternet();
     }
 
-    private void getDataFromInternet() {
-
-    }
-
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         recyclerView.setAdapter(new RecipeAdapter(this, DummyContent.ITEMS, mIsTwoPane));
         if (mIsTwoPane) {
@@ -59,5 +58,10 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }
     }
+
+    private void getDataFromInternet() {
+        NetworkUtils.getJSONDataFromAPI();
+    }
+
 
 }

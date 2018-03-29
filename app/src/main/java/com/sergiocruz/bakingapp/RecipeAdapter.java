@@ -9,7 +9,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.sergiocruz.bakingapp.activities.MainActivity;
+import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.dummy.DummyContent;
+import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
+import com.sergiocruz.bakingapp.model.Recipe;
 
 import java.util.List;
 
@@ -17,13 +21,13 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
     private final MainActivity mParentActivity;
     private final List<Recipe> recipesList;
-    private final boolean mTwoPane;
+    private final boolean isTwoPane;
 
     private final View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             DummyContent.DummyItem item = (DummyContent.DummyItem) view.getTag();
-            if (mTwoPane) {
+            if (isTwoPane) {
                 Bundle arguments = new Bundle();
                 arguments.putString(RecipeDetailFragment.ARG_ITEM_ID, item.id);
                 RecipeDetailFragment fragment = new RecipeDetailFragment();
@@ -41,22 +45,25 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         }
     };
 
-    RecipeAdapter(MainActivity parent, List<Recipe> recipesList, boolean twoPane) {
+    RecipeAdapter(MainActivity parent, List<Recipe> recipesList, boolean isTwoPane) {
         this.recipesList = recipesList;
         mParentActivity = parent;
-        mTwoPane = twoPane;
+        this.isTwoPane = isTwoPane;
     }
 
     @Override
     public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recipe_list_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.recipe_list_item, parent, false);
         return new RecipeViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final RecipeViewHolder holder, int position) {
-        holder.mIdView.setText(recipesList.get(position).id);
-        holder.mContentView.setText(recipesList.get(position).content);
+        holder.recipeName.setText(recipesList.get(position).getRecipeName());
+        holder.numIngredients.setText(recipesList.get(position).getIngredientsList().size());
+        holder.numSteps.setText(recipesList.get(position).getStepsList().size());
+        holder.numServings.setText(recipesList.get(position).getServings());
 
         holder.itemView.setTag(recipesList.get(position));
         holder.itemView.setOnClickListener(mOnClickListener);
@@ -64,17 +71,21 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
     @Override
     public int getItemCount() {
-        return recipesList.size();
+        return recipesList == null ? 0 : recipesList.size();
     }
 
     class RecipeViewHolder extends RecyclerView.ViewHolder {
-        final TextView mIdView;
-        final TextView mContentView;
+        final TextView recipeName;
+        final TextView numIngredients;
+        final TextView numSteps;
+        final TextView numServings;
 
-        RecipeViewHolder(View view) {
-            super(view);
-            mIdView = view.findViewById(R.id.id_text);
-            mContentView = view.findViewById(R.id.content);
+        public RecipeViewHolder(View itemView) {
+            super(itemView);
+            recipeName = itemView.findViewById(R.id.recipe_name);
+            numIngredients = itemView.findViewById(R.id.ingredients_num);
+            numSteps = itemView.findViewById(R.id.steps_num);
+            numServings = itemView.findViewById(R.id.servings_num);
         }
     }
 }

@@ -1,5 +1,6 @@
-package com.sergiocruz.bakingapp;
+package com.sergiocruz.bakingapp.model;
 
+import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Recipe implements Parcelable{
+    @PrimaryKey
     private int recipeId;
     private String recipeName;
     private List<Ingredients> ingredientsList;

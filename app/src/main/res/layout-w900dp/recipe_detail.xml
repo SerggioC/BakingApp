@@ -31,7 +31,26 @@
             android:scaleType="centerCrop"
             android:src="@drawable/baking_background"/>
 
-        <include layout="@layout/recipe_detail_fragment"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <include
+                layout="@layout/recipe_detail_fragment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"/>
+
+            <include
+                layout="@layout/recipe_step_fragment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+
 
     </FrameLayout>
 

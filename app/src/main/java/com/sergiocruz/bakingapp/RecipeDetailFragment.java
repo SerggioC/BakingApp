@@ -13,11 +13,11 @@ import com.sergiocruz.bakingapp.dummy.DummyContent;
 
 /**
  * A fragment representing a single recipe detail screen.
- * This fragment is either contained in a {@link recipeListActivity}
- * in two-pane mode (on tablets) or a {@link recipeDetailActivity}
+ * This fragment is either contained in a {@link MainActivity}
+ * in two-pane mode (on tablets) or a {@link RecipeDetailActivity}
  * on handsets.
  */
-public class recipeDetailFragment extends Fragment {
+public class RecipeDetailFragment extends Fragment {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -33,7 +33,7 @@ public class recipeDetailFragment extends Fragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public recipeDetailFragment() {
+    public RecipeDetailFragment() {
     }
 
     @Override

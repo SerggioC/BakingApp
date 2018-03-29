@@ -8,16 +8,7 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/app_bar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <include layout="@layout/toolbar_layout"/>
-
-    </android.support.design.widget.AppBarLayout>
-
+    <include layout="@layout/appbar_toolbar_layout"/>
 
     <FrameLayout
         android:id="@+id/frameLayout_recipe_detail"
@@ -26,12 +17,15 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <ImageView
+            android:contentDescription="@string/background_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:scaleType="centerCrop"
             android:src="@drawable/baking_background"/>
 
-        <include layout="@layout/recipe_detail_fragment"/>
+        <include
+            android:id="@+id/recipe_detail_fragment"
+            layout="@layout/recipe_detail_fragment"/>
 
     </FrameLayout>
 

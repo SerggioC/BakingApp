@@ -30,7 +30,6 @@
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/horizontalGuideline">
@@ -39,8 +38,8 @@
             android:id="@+id/recipe_step_detail_TextView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="asdklu asdfuyhas kldhfklsajdfhlkasjdhf lkajsdhflkuqwey sadfl kajshdflkc nsdfhklasjch nflkas hdcflkjasdhf lkasjh cfkashd fklasj clkasjdhf asu crfwuihfaskljdfh cpaweu8 hcrfaskejfh cpaw8eu hcfsadfh cp8wakweh cfalseucfhlksajdf c "/>
+            android:layout_margin="8dp"
+            tools:text="@tools:sample/lorem/random"/>
 
     </ScrollView>
 

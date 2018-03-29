@@ -18,8 +18,8 @@ public class RecipeDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_recipe_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
+        setContentView(R.layout.recipe_detail);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
 
@@ -46,7 +46,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             RecipeDetailFragment fragment = new RecipeDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.recipe_detail_container, fragment)
+                    .add(R.id.recipe_detail_fragment, fragment)
                     .commit();
         }
     }

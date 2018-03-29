@@ -36,7 +36,7 @@ android {
 // use double quotes "
 ext {
     supportlibversion = "27.1.0"
-    constraintLayoutVersion = "1.0.2"
+    constraintLayoutVersion = "1.1.0-beta6"
 }
 
 dependencies {

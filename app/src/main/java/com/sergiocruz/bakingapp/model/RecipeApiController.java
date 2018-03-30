@@ -2,7 +2,6 @@ package com.sergiocruz.bakingapp.model;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
 import com.sergiocruz.bakingapp.interfaces.RecipesApi;
 
 import java.util.List;
@@ -16,10 +15,10 @@ import timber.log.Timber;
 
 public class RecipeApiController implements Callback<List<Recipe>> {
     static final String RECIPES_BASE_URL = "https://d17h27t6h515a5.cloudfront.net/";
-    RecipeAdapter adapter;
+    AdapterCallback adapterCallback;
 
-    public void init(RecipeAdapter adapter) {
-        this.adapter = adapter;
+    public void init(AdapterCallback adapterCallback) {
+        this.adapterCallback = adapterCallback;
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -39,19 +38,25 @@ public class RecipeApiController implements Callback<List<Recipe>> {
     @Override
     public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
         if(response.isSuccessful()) {
+
             List<Recipe> recipesList = response.body();
-
-            adapter.swapRecipesData(recipesList, false, false);
-
+            adapterCallback.onRetrofitResponse(recipesList);
 
             Timber.d(recipesList.toString());
         } else {
+            adapterCallback.onRetrofitResponse(null);
             System.out.println(response.errorBody());
         }
     }
 
     @Override
     public void onFailure(Call<List<Recipe>> call, Throwable t) {
+        adapterCallback.onRetrofitResponse(null);
         t.printStackTrace();
     }
+
+    public interface AdapterCallback {
+        void onRetrofitResponse(List<Recipe> recipesList);
+    }
+
 }

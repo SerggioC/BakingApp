@@ -17,6 +17,8 @@ import com.sergiocruz.bakingapp.helpers.TimberImplementation;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
+import java.util.List;
+
 import timber.log.Timber;
 
 /**
@@ -27,7 +29,7 @@ import timber.log.Timber;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class MainActivity extends AppCompatActivity implements RecipeAdapter.RecipeClickListener{
+public class MainActivity extends AppCompatActivity implements RecipeAdapter.RecipeClickListener, RecipeApiController.AdapterCallback{
 
     private boolean mIsTwoPane;
     private Context mContext;
@@ -54,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
         adapter = new RecipeAdapter(this, this);
         setupRecyclerView(recyclerView, adapter);
 
-
         if (NetworkUtils.hasActiveNetworkConnection(mContext)) {
             getDataFromInternet();
         } else {
@@ -74,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
 
     // Get data using retrofit and serialize automatically with GSON
     private void getDataFromInternet() {
-        new RecipeApiController().init(adapter);
+        new RecipeApiController().init(this);
     }
 
     private void getDataFromLocalDataBase() {
@@ -85,5 +86,10 @@ public class MainActivity extends AppCompatActivity implements RecipeAdapter.Rec
     public void onRecipeClicked(Recipe recipe, View itemView) {
         // start fragment with the recipe
         Timber.d(recipe.getRecipeName());
+    }
+
+    @Override
+    public void onRetrofitResponse(List<Recipe> recipesList) {
+        adapter.swapRecipesData(recipesList, false, false);
     }
 }

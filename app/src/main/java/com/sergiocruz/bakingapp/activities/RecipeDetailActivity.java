@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
+import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
 
 /**
@@ -44,7 +45,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(RecipeDetailFragment.ARG_ITEM_ID, getIntent().getStringExtra(RecipeDetailFragment.ARG_ITEM_ID));
+            arguments.putString(RecipeDetailFragment.ARG_RECIPE_ITEM_ID, getIntent().getStringExtra(RecipeDetailFragment.ARG_RECIPE_ITEM_ID));
             RecipeDetailFragment fragment = new RecipeDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()

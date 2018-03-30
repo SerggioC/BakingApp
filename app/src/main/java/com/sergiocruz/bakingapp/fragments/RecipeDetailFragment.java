@@ -5,12 +5,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
-import com.sergiocruz.bakingapp.dummy.DummyContent;
+import com.sergiocruz.bakingapp.model.Recipe;
 
 /**
  * A fragment representing a single recipe detail screen.
@@ -19,16 +18,17 @@ import com.sergiocruz.bakingapp.dummy.DummyContent;
  * on handsets.
  */
 public class RecipeDetailFragment extends Fragment {
+
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String ARG_ITEM_ID = "item_id";
+    public static final String ARG_RECIPE_ITEM_ID = "item_id";
 
     /**
      * The dummy content this fragment is presenting.
      */
-    private DummyContent.DummyItem mItem;
+    private Recipe mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -41,11 +41,11 @@ public class RecipeDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
+        if (getArguments().containsKey(ARG_RECIPE_ITEM_ID)) {
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+            //mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_RECIPE_ITEM_ID));
 
 //            Activity activity = this.getActivity();
 //            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar);
@@ -62,7 +62,7 @@ public class RecipeDetailFragment extends Fragment {
 
         // Show the dummy content as text in a TextView.
         if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.recipe_detail_TextView)).setText(mItem.details);
+            //((TextView) rootView.findViewById(R.id.recipe_detail_TextView)).setText(mItem.details);
         }
 
         return rootView;

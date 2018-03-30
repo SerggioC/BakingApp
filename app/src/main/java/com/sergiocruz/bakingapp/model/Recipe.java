@@ -5,26 +5,67 @@ import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-public class Recipe implements Parcelable{
+public class Recipe implements Parcelable {
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Recipe> CREATOR = new Parcelable.Creator<Recipe>() {
+        @Override
+        public Recipe createFromParcel(Parcel in) {
+            return new Recipe(in);
+        }
+
+        @Override
+        public Recipe[] newArray(int size) {
+            return new Recipe[size];
+        }
+    };
+
     @PrimaryKey
+    @SerializedName("id")
     private int recipeId;
+    @SerializedName("name")
     private String recipeName;
-    private List<Ingredients> ingredientsList;
-    private List<RecipeSteps> stepsList;
+    @SerializedName("ingredients")
+    private List<Ingredient> ingredientsList;
+    @SerializedName("steps")
+    private List<RecipeStep> stepsList;
+    @SerializedName("servings")
     private Integer servings;
+    @SerializedName("image")
     private String recipeImage;
 
-    public Recipe(int recipeId, String recipeName, List<Ingredients> ingredientsList, List<RecipeSteps> stepsList, Integer servings, String recipeImage) {
+    public Recipe(int recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage) {
         this.recipeId = recipeId;
         this.recipeName = recipeName;
         this.ingredientsList = ingredientsList;
         this.stepsList = stepsList;
         this.servings = servings;
         this.recipeImage = recipeImage;
+    }
+
+    protected Recipe(Parcel in) {
+        recipeId = in.readInt();
+        recipeName = in.readString();
+        if (in.readByte() == 0x01) {
+            ingredientsList = new ArrayList<Ingredient>();
+            in.readList(ingredientsList, Ingredient.class.getClassLoader());
+        } else {
+            ingredientsList = null;
+        }
+        if (in.readByte() == 0x01) {
+            stepsList = new ArrayList<RecipeStep>();
+            in.readList(stepsList, RecipeStep.class.getClassLoader());
+        } else {
+            stepsList = null;
+        }
+        servings = in.readByte() == 0x00 ? null : in.readInt();
+        recipeImage = in.readString();
     }
 
     public int getRecipeId() {
@@ -43,19 +84,19 @@ public class Recipe implements Parcelable{
         this.recipeName = recipeName;
     }
 
-    public List<Ingredients> getIngredientsList() {
+    public List<Ingredient> getIngredientsList() {
         return ingredientsList;
     }
 
-    public void setIngredientsList(List<Ingredients> ingredientsList) {
+    public void setIngredientsList(List<Ingredient> ingredientsList) {
         this.ingredientsList = ingredientsList;
     }
 
-    public List<RecipeSteps> getStepsList() {
+    public List<RecipeStep> getStepsList() {
         return stepsList;
     }
 
-    public void setStepsList(List<RecipeSteps> stepsList) {
+    public void setStepsList(List<RecipeStep> stepsList) {
         this.stepsList = stepsList;
     }
 
@@ -73,25 +114,6 @@ public class Recipe implements Parcelable{
 
     public void setRecipeImage(String recipeImage) {
         this.recipeImage = recipeImage;
-    }
-
-    protected Recipe(Parcel in) {
-        recipeId = in.readInt();
-        recipeName = in.readString();
-        if (in.readByte() == 0x01) {
-            ingredientsList = new ArrayList<Ingredients>();
-            in.readList(ingredientsList, Ingredients.class.getClassLoader());
-        } else {
-            ingredientsList = null;
-        }
-        if (in.readByte() == 0x01) {
-            stepsList = new ArrayList<RecipeSteps>();
-            in.readList(stepsList, RecipeSteps.class.getClassLoader());
-        } else {
-            stepsList = null;
-        }
-        servings = in.readByte() == 0x00 ? null : in.readInt();
-        recipeImage = in.readString();
     }
 
     @Override
@@ -124,29 +146,34 @@ public class Recipe implements Parcelable{
         dest.writeString(recipeImage);
     }
 
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<Recipe> CREATOR = new Parcelable.Creator<Recipe>() {
-        @Override
-        public Recipe createFromParcel(Parcel in) {
-            return new Recipe(in);
-        }
-
-        @Override
-        public Recipe[] newArray(int size) {
-            return new Recipe[size];
-        }
-    };
-
     @Entity
-    private static class Ingredients implements Parcelable{
+    public static class Ingredient implements Parcelable {
+        @SuppressWarnings("unused")
+        public static final Parcelable.Creator<Ingredient> CREATOR = new Parcelable.Creator<Ingredient>() {
+            @Override
+            public Ingredient createFromParcel(Parcel in) {
+                return new Ingredient(in);
+            }
+
+            @Override
+            public Ingredient[] newArray(int size) {
+                return new Ingredient[size];
+            }
+        };
         Float quantity;
         String measure;
         String ingredient;
 
-        public Ingredients(Float quantity, String measure, String ingredient) {
+        public Ingredient(Float quantity, String measure, String ingredient) {
             this.quantity = quantity;
             this.measure = measure;
             this.ingredient = ingredient;
+        }
+
+        protected Ingredient(Parcel in) {
+            quantity = in.readByte() == 0x00 ? null : in.readFloat();
+            measure = in.readString();
+            ingredient = in.readString();
         }
 
         public Float getQuantity() {
@@ -173,12 +200,6 @@ public class Recipe implements Parcelable{
             this.ingredient = ingredient;
         }
 
-        protected Ingredients(Parcel in) {
-            quantity = in.readByte() == 0x00 ? null : in.readFloat();
-            measure = in.readString();
-            ingredient = in.readString();
-        }
-
         @Override
         public int describeContents() {
             return 0;
@@ -195,23 +216,22 @@ public class Recipe implements Parcelable{
             dest.writeString(measure);
             dest.writeString(ingredient);
         }
-
-        @SuppressWarnings("unused")
-        public static final Parcelable.Creator<Ingredients> CREATOR = new Parcelable.Creator<Ingredients>() {
-            @Override
-            public Ingredients createFromParcel(Parcel in) {
-                return new Ingredients(in);
-            }
-
-            @Override
-            public Ingredients[] newArray(int size) {
-                return new Ingredients[size];
-            }
-        };
     }
 
     @Entity
-    private static class RecipeSteps implements Parcelable{
+    public static class RecipeStep implements Parcelable {
+        @SuppressWarnings("unused")
+        public static final Parcelable.Creator<RecipeStep> CREATOR = new Parcelable.Creator<RecipeStep>() {
+            @Override
+            public RecipeStep createFromParcel(Parcel in) {
+                return new RecipeStep(in);
+            }
+
+            @Override
+            public RecipeStep[] newArray(int size) {
+                return new RecipeStep[size];
+            }
+        };
         @PrimaryKey
         Integer recipeStepId;
         String shortDesc;
@@ -219,12 +239,20 @@ public class Recipe implements Parcelable{
         String videoUrl;
         String thumbnailUrl;
 
-        public RecipeSteps(Integer recipeStepId, String shortDesc, String description, String videoUrl, String thumbnailUrl) {
+        public RecipeStep(Integer recipeStepId, String shortDesc, String description, String videoUrl, String thumbnailUrl) {
             this.recipeStepId = recipeStepId;
             this.shortDesc = shortDesc;
             this.description = description;
             this.videoUrl = videoUrl;
             this.thumbnailUrl = thumbnailUrl;
+        }
+
+        protected RecipeStep(Parcel in) {
+            recipeStepId = in.readByte() == 0x00 ? null : in.readInt();
+            shortDesc = in.readString();
+            description = in.readString();
+            videoUrl = in.readString();
+            thumbnailUrl = in.readString();
         }
 
         public Integer getRecipeStepId() {
@@ -267,15 +295,6 @@ public class Recipe implements Parcelable{
             this.thumbnailUrl = thumbnailUrl;
         }
 
-
-        protected RecipeSteps(Parcel in) {
-            recipeStepId = in.readByte() == 0x00 ? null : in.readInt();
-            shortDesc = in.readString();
-            description = in.readString();
-            videoUrl = in.readString();
-            thumbnailUrl = in.readString();
-        }
-
         @Override
         public int describeContents() {
             return 0;
@@ -294,19 +313,6 @@ public class Recipe implements Parcelable{
             dest.writeString(videoUrl);
             dest.writeString(thumbnailUrl);
         }
-
-        @SuppressWarnings("unused")
-        public static final Parcelable.Creator<RecipeSteps> CREATOR = new Parcelable.Creator<RecipeSteps>() {
-            @Override
-            public RecipeSteps createFromParcel(Parcel in) {
-                return new RecipeSteps(in);
-            }
-
-            @Override
-            public RecipeSteps[] newArray(int size) {
-                return new RecipeSteps[size];
-            }
-        };
 
     }
 }

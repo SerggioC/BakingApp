@@ -2,7 +2,6 @@ package com.sergiocruz.bakingapp.activities;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,9 +11,13 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
-import com.sergiocruz.bakingapp.RecipeAdapter;
-import com.sergiocruz.bakingapp.dummy.DummyContent;
+import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
+import com.sergiocruz.bakingapp.model.RecipeApiController;
+import com.sergiocruz.bakingapp.helpers.TimberImplementation;
+import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
+
+import timber.log.Timber;
 
 /**
  * An activity representing a list of recipes. This activity
@@ -24,15 +27,19 @@ import com.sergiocruz.bakingapp.utils.NetworkUtils;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RecipeAdapter.RecipeClickListener{
 
     private boolean mIsTwoPane;
     private Context mContext;
+    private RecyclerView recyclerView;
+    private RecipeAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        TimberImplementation.init();
 
         mContext = this;
 
@@ -43,25 +50,40 @@ public class MainActivity extends AppCompatActivity {
 
         mIsTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
-        View recyclerView = findViewById(R.id.recipe_list_recyclerview);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        recyclerView = findViewById(R.id.recipe_list_recyclerview);
+        adapter = new RecipeAdapter(this, this);
+        setupRecyclerView(recyclerView, adapter);
 
-        getDataFromInternet();
+
+        if (NetworkUtils.hasActiveNetworkConnection(mContext)) {
+            getDataFromInternet();
+        } else {
+            getDataFromLocalDataBase();
+        }
+
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new RecipeAdapter(this, DummyContent.ITEMS, mIsTwoPane));
+    private void setupRecyclerView(RecyclerView recyclerView, RecipeAdapter adapter) {
         if (mIsTwoPane) {
             recyclerView.setLayoutManager(new GridLayoutManager(mContext, 3, GridLayoutManager.VERTICAL, false));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }
+        recyclerView.setAdapter(adapter);
     }
 
+    // Get data using retrofit and serialize automatically with GSON
     private void getDataFromInternet() {
-        NetworkUtils.getJSONDataFromAPI();
+        new RecipeApiController().init(adapter);
     }
 
+    private void getDataFromLocalDataBase() {
 
+    }
+
+    @Override
+    public void onRecipeClicked(Recipe recipe, View itemView) {
+        // start fragment with the recipe
+        Timber.d(recipe.getRecipeName());
+    }
 }

@@ -15,10 +15,10 @@ import timber.log.Timber;
 
 public class RecipeApiController implements Callback<List<Recipe>> {
     static final String RECIPES_BASE_URL = "https://d17h27t6h515a5.cloudfront.net/";
-    AdapterCallback adapterCallback;
+    RetrofitCallback retrofitCallback;
 
-    public void init(AdapterCallback adapterCallback) {
-        this.adapterCallback = adapterCallback;
+    public void init(RetrofitCallback retrofitCallback) {
+        this.retrofitCallback = retrofitCallback;
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -35,27 +35,29 @@ public class RecipeApiController implements Callback<List<Recipe>> {
         call.enqueue(this); // <- takes the callback for the response __asynchronously__
     }
 
+    // Retrofit built in callback
     @Override
     public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
         if(response.isSuccessful()) {
 
             List<Recipe> recipesList = response.body();
-            adapterCallback.onRetrofitResponse(recipesList);
+            retrofitCallback.onRetrofitResponse(recipesList);
 
             Timber.d(recipesList.toString());
         } else {
-            adapterCallback.onRetrofitResponse(null);
+            retrofitCallback.onRetrofitResponse(null);
             System.out.println(response.errorBody());
         }
     }
 
     @Override
     public void onFailure(Call<List<Recipe>> call, Throwable t) {
-        adapterCallback.onRetrofitResponse(null);
+        retrofitCallback.onRetrofitResponse(null);
         t.printStackTrace();
     }
 
-    public interface AdapterCallback {
+    // custom interface
+    public interface RetrofitCallback {
         void onRetrofitResponse(List<Recipe> recipesList);
     }
 

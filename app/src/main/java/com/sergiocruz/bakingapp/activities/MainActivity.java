@@ -12,9 +12,9 @@ import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
-import com.sergiocruz.bakingapp.model.RecipeApiController;
 import com.sergiocruz.bakingapp.helpers.TimberImplementation;
 import com.sergiocruz.bakingapp.model.Recipe;
+import com.sergiocruz.bakingapp.model.RecipeApiController;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.List;
@@ -29,7 +29,7 @@ import timber.log.Timber;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class MainActivity extends AppCompatActivity implements RecipeAdapter.RecipeClickListener, RecipeApiController.AdapterCallback{
+public class MainActivity extends AppCompatActivity implements RecipeAdapter.RecipeClickListener, RecipeApiController.RetrofitCallback {
 
     private boolean mIsTwoPane;
     private Context mContext;

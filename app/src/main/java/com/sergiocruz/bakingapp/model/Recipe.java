@@ -160,6 +160,8 @@ public class Recipe implements Parcelable {
                 return new Ingredient[size];
             }
         };
+        @PrimaryKey(autoGenerate = true)
+        int ingredientId;
         Float quantity;
         String measure;
         String ingredient;

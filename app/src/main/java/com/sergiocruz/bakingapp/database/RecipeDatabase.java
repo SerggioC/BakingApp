@@ -5,11 +5,13 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
+import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
+import com.sergiocruz.bakingapp.model.RecipeStep;
 
-@Database(entities = {Recipe.class, Recipe.Ingredient.class, Recipe.RecipeStep.class}, version = 1)
+@Database(entities = {Recipe.class, Ingredient.class, RecipeStep.class}, version = 1)
 public abstract class RecipeDatabase extends RoomDatabase {
-    public static final String RECIPE_DATABASE_NAME = "recipes_db.db";
+    private static final String RECIPE_DATABASE_NAME = "recipes.db";
     private static RecipeDatabase DATABASE_INSTANCE;
 
     public static RecipeDatabase getDatabase(Context context) {

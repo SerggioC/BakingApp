@@ -1,10 +1,12 @@
 package com.sergiocruz.bakingapp.model;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
@@ -26,21 +28,32 @@ public class Recipe implements Parcelable {
         }
     };
 
-    @PrimaryKey
+    @Expose(serialize = false, deserialize = false)
+    @PrimaryKey(autoGenerate = true)
+    private Integer columnId;
+
     @SerializedName("id")
-    private int recipeId;
+    private Integer recipeId;
+
     @SerializedName("name")
     private String recipeName;
+
+    @Ignore
     @SerializedName("ingredients")
     private List<Ingredient> ingredientsList;
+
+    @Ignore
     @SerializedName("steps")
     private List<RecipeStep> stepsList;
+
     @SerializedName("servings")
     private Integer servings;
+
     @SerializedName("image")
     private String recipeImage;
 
-    public Recipe(int recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage) {
+    @Ignore // Room ignore -> GSON serialization
+    public Recipe(Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage) {
         this.recipeId = recipeId;
         this.recipeName = recipeName;
         this.ingredientsList = ingredientsList;
@@ -49,8 +62,17 @@ public class Recipe implements Parcelable {
         this.recipeImage = recipeImage;
     }
 
+    public Recipe(Integer columnId, Integer recipeId, String recipeName, Integer servings, String recipeImage) {
+        this.columnId = columnId;
+        this.recipeId = recipeId;
+        this.recipeName = recipeName;
+        this.servings = servings;
+        this.recipeImage = recipeImage;
+    }
+
     protected Recipe(Parcel in) {
-        recipeId = in.readInt();
+        columnId = in.readByte() == 0x00 ? null : in.readInt();
+        recipeId = in.readByte() == 0x00 ? null : in.readInt();
         recipeName = in.readString();
         if (in.readByte() == 0x01) {
             ingredientsList = new ArrayList<Ingredient>();
@@ -68,7 +90,11 @@ public class Recipe implements Parcelable {
         recipeImage = in.readString();
     }
 
-    public int getRecipeId() {
+    public Integer getColumnId() { return columnId; }
+
+    public void setColumnId(Integer columnId) { this.columnId = columnId; }
+
+    public Integer getRecipeId() {
         return recipeId;
     }
 
@@ -84,9 +110,7 @@ public class Recipe implements Parcelable {
         this.recipeName = recipeName;
     }
 
-    public List<Ingredient> getIngredientsList() {
-        return ingredientsList;
-    }
+    public List<Ingredient> getIngredientsList() { return ingredientsList; }
 
     public void setIngredientsList(List<Ingredient> ingredientsList) {
         this.ingredientsList = ingredientsList;
@@ -123,7 +147,18 @@ public class Recipe implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(recipeId);
+        if (columnId == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(columnId);
+        }
+        if (recipeId == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(recipeId);
+        }
         dest.writeString(recipeName);
         if (ingredientsList == null) {
             dest.writeByte((byte) (0x00));
@@ -146,175 +181,5 @@ public class Recipe implements Parcelable {
         dest.writeString(recipeImage);
     }
 
-    @Entity
-    public static class Ingredient implements Parcelable {
-        @SuppressWarnings("unused")
-        public static final Parcelable.Creator<Ingredient> CREATOR = new Parcelable.Creator<Ingredient>() {
-            @Override
-            public Ingredient createFromParcel(Parcel in) {
-                return new Ingredient(in);
-            }
 
-            @Override
-            public Ingredient[] newArray(int size) {
-                return new Ingredient[size];
-            }
-        };
-        @PrimaryKey(autoGenerate = true)
-        int ingredientId;
-        Float quantity;
-        String measure;
-        String ingredient;
-
-        public Ingredient(Float quantity, String measure, String ingredient) {
-            this.quantity = quantity;
-            this.measure = measure;
-            this.ingredient = ingredient;
-        }
-
-        protected Ingredient(Parcel in) {
-            quantity = in.readByte() == 0x00 ? null : in.readFloat();
-            measure = in.readString();
-            ingredient = in.readString();
-        }
-
-        public Float getQuantity() {
-            return quantity;
-        }
-
-        public void setQuantity(Float quantity) {
-            this.quantity = quantity;
-        }
-
-        public String getMeasure() {
-            return measure;
-        }
-
-        public void setMeasure(String measure) {
-            this.measure = measure;
-        }
-
-        public String getIngredient() {
-            return ingredient;
-        }
-
-        public void setIngredient(String ingredient) {
-            this.ingredient = ingredient;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            if (quantity == null) {
-                dest.writeByte((byte) (0x00));
-            } else {
-                dest.writeByte((byte) (0x01));
-                dest.writeFloat(quantity);
-            }
-            dest.writeString(measure);
-            dest.writeString(ingredient);
-        }
-    }
-
-    @Entity
-    public static class RecipeStep implements Parcelable {
-        @SuppressWarnings("unused")
-        public static final Parcelable.Creator<RecipeStep> CREATOR = new Parcelable.Creator<RecipeStep>() {
-            @Override
-            public RecipeStep createFromParcel(Parcel in) {
-                return new RecipeStep(in);
-            }
-
-            @Override
-            public RecipeStep[] newArray(int size) {
-                return new RecipeStep[size];
-            }
-        };
-        @PrimaryKey
-        Integer recipeStepId;
-        String shortDesc;
-        String description;
-        String videoUrl;
-        String thumbnailUrl;
-
-        public RecipeStep(Integer recipeStepId, String shortDesc, String description, String videoUrl, String thumbnailUrl) {
-            this.recipeStepId = recipeStepId;
-            this.shortDesc = shortDesc;
-            this.description = description;
-            this.videoUrl = videoUrl;
-            this.thumbnailUrl = thumbnailUrl;
-        }
-
-        protected RecipeStep(Parcel in) {
-            recipeStepId = in.readByte() == 0x00 ? null : in.readInt();
-            shortDesc = in.readString();
-            description = in.readString();
-            videoUrl = in.readString();
-            thumbnailUrl = in.readString();
-        }
-
-        public Integer getRecipeStepId() {
-            return recipeStepId;
-        }
-
-        public void setRecipeStepId(Integer recipeStepId) {
-            this.recipeStepId = recipeStepId;
-        }
-
-        public String getShortDesc() {
-            return shortDesc;
-        }
-
-        public void setShortDesc(String shortDesc) {
-            this.shortDesc = shortDesc;
-        }
-
-        public String getDescription() {
-            return description;
-        }
-
-        public void setDescription(String description) {
-            this.description = description;
-        }
-
-        public String getVideoUrl() {
-            return videoUrl;
-        }
-
-        public void setVideoUrl(String videoUrl) {
-            this.videoUrl = videoUrl;
-        }
-
-        public String getThumbnailUrl() {
-            return thumbnailUrl;
-        }
-
-        public void setThumbnailUrl(String thumbnailUrl) {
-            this.thumbnailUrl = thumbnailUrl;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-            if (recipeStepId == null) {
-                dest.writeByte((byte) (0x00));
-            } else {
-                dest.writeByte((byte) (0x01));
-                dest.writeInt(recipeStepId);
-            }
-            dest.writeString(shortDesc);
-            dest.writeString(description);
-            dest.writeString(videoUrl);
-            dest.writeString(thumbnailUrl);
-        }
-
-    }
 }

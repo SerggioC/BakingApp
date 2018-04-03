@@ -1,6 +1,5 @@
 package com.sergiocruz.bakingapp.activities;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +8,7 @@ import android.view.MenuItem;
 
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
+import com.sergiocruz.bakingapp.model.Recipe;
 
 /**
  * An activity representing a single recipe detail screen. This
@@ -22,9 +22,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.recipe_detail);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
 
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
@@ -44,12 +44,18 @@ public class RecipeDetailActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putString(RecipeDetailFragment.ARG_RECIPE_ITEM_ID, getIntent().getStringExtra(RecipeDetailFragment.ARG_RECIPE_ITEM_ID));
-            RecipeDetailFragment fragment = new RecipeDetailFragment();
-            fragment.setArguments(arguments);
+
+            //Bundle arguments = new Bundle();
+            Recipe recipe = getIntent().getParcelableExtra(RecipeDetailFragment.ARG_RECIPE_ITEM);
+
+            //arguments.putParcelable(RecipeDetailFragment.ARG_RECIPE_ITEM, recipe);
+
+            //recipeDetailFragment.setArguments(arguments);
+
+            RecipeDetailFragment recipeDetailFragment = new RecipeDetailFragment();
+            recipeDetailFragment.setRecipe(recipe);
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.recipe_detail_fragment, fragment)
+                    .add(R.id.recipe_detail_fragment_container, recipeDetailFragment)
                     .commit();
         }
     }
@@ -64,7 +70,9 @@ public class RecipeDetailActivity extends AppCompatActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            navigateUpTo(new Intent(this, MainActivity.class));
+            //navigateUpTo(new Intent(this, MainActivity.class));
+
+            super.onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);

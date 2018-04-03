@@ -181,5 +181,4 @@ public class Recipe implements Parcelable {
         dest.writeString(recipeImage);
     }
 
-
 }

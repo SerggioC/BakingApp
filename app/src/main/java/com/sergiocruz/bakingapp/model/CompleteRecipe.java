@@ -20,4 +20,16 @@ public class CompleteRecipe {
     @Relation(parentColumn = "columnId", entityColumn = "recipeId")
     public List<RecipeStep> recipeStepList;
 
+
+    public Recipe getRecipe() {
+        return recipe;
+    }
+
+    public List<Ingredient> getIngredientList() {
+        return ingredientList;
+    }
+
+    public List<RecipeStep> getRecipeStepList() {
+        return recipeStepList;
+    }
 }

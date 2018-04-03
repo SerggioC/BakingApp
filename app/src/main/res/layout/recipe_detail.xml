@@ -23,9 +23,10 @@
             android:scaleType="centerCrop"
             android:src="@drawable/baking_background"/>
 
-        <include
-            android:id="@+id/recipe_detail_fragment"
-            layout="@layout/recipe_detail_fragment"/>
+        <FrameLayout
+            android:id="@+id/recipe_detail_fragment_container"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
     </FrameLayout>
 

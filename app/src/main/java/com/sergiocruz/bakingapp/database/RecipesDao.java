@@ -64,8 +64,6 @@ public interface RecipesDao {
     void addRecipe(List<Recipe> recipeList);
 
 
-
-
     @Delete
     void deleteRecipe(Recipe recipe);
 }

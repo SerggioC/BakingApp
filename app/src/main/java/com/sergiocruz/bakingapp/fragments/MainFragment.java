@@ -3,6 +3,7 @@ package com.sergiocruz.bakingapp.fragments;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
 import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
@@ -27,6 +29,8 @@ import java.util.List;
 
 import timber.log.Timber;
 
+import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.ARG_RECIPE_ITEM;
+
 public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickListener {
 
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
@@ -34,16 +38,15 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
     private MainFragmentViewModel viewModel;
     private RecyclerView recyclerView;
     private RecipeAdapter adapter;
-    private boolean mIsTwoPane;
+    private boolean isTwoPane;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        View rootView = inflater.inflate(R.layout.recipe_list_fragment, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_recipe_list, container, false);
 
         mContext = getContext();
-
 
         Toolbar toolbar = rootView.findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
@@ -52,15 +55,17 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
 
         setHasOptionsMenu(true);
 
-        mIsTwoPane = getResources().getBoolean(R.bool.is_two_pane);
+        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
         recyclerView = rootView.findViewById(R.id.recipe_list_recyclerview);
 
-        adapter = new RecipeAdapter(mContext, this);
+        adapter = new RecipeAdapter(this);
         setupRecyclerView(recyclerView, adapter);
 
+        RecipesDataRepository repository = new RecipesDataRepository(mContext);
+
         viewModel = ViewModelProviders.of(MainFragment.this).get(MainFragmentViewModel.class);
-        viewModel.init(new RecipesDataRepository(mContext), false);
+        viewModel.init(repository, false);
 
         viewModel.getAllRecipes().observe(MainFragment.this, new Observer<List<Recipe>>() {
             /**
@@ -69,12 +74,11 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
              */
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
-                adapter.swapRecipesData(recipesList, false, false);
+                adapter.swapRecipesData(recipesList);
             }
 
         });
         if (savedInstanceState != null) {
-            //
             int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
             recyclerView.smoothScrollToPosition(position);
         }
@@ -84,7 +88,7 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
 
 
     private void setupRecyclerView(RecyclerView recyclerView, RecipeAdapter adapter) {
-        if (mIsTwoPane) {
+        if (isTwoPane) {
             recyclerView.setLayoutManager(new GridLayoutManager(mContext, 3, GridLayoutManager.VERTICAL, false));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
@@ -98,12 +102,13 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
 
     }
 
-
-
-
     @Override
-    public void onRecipeClicked(Recipe recipe, View itemView) {
-        // start fragment with the recipe
+    public void onRecipeClicked(Recipe recipe) {
+        // start Detail Activity with the recipe details
+        Intent intent = new Intent(mContext, RecipeDetailActivity.class);
+        intent.putExtra(ARG_RECIPE_ITEM, recipe);
+        startActivity(intent);
+
         Timber.d(recipe.getRecipeName());
     }
 

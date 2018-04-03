@@ -1,7 +1,6 @@
 package com.sergiocruz.bakingapp.activities;
 
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 
 import com.sergiocruz.bakingapp.R;
@@ -25,14 +24,20 @@ public class MainActivity extends AppCompatActivity {
 
         TimberImplementation.init();
 
-        MainFragment mainFragment = new MainFragment();
-
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction()
-                .add(R.id.mainFrameLayout, mainFragment)
+        getSupportFragmentManager().beginTransaction()
+                .add(R.id.mainFrameLayout, new MainFragment())
                 .commit();
 
     }
 
+    @Override
+    public void onBackPressed() {
+        int count = getFragmentManager().getBackStackEntryCount();
+        if (count == 0) {
+            super.onBackPressed();
+        } else {
+            getFragmentManager().popBackStack();
+        }
 
+    }
 }

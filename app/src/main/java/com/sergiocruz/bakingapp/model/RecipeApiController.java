@@ -7,11 +7,16 @@ import com.sergiocruz.bakingapp.interfaces.RecipesApi;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class RecipeApiController {
-    static final String RECIPES_BASE_URL = "https://d17h27t6h515a5.cloudfront.net/";
 
-    // Get data using retrofit and serialize automatically with GSON
+/**
+ *  Get data using retrofit and serialize automatically with GSON
+ * */
+public class RecipeApiController {
+    private final String RECIPES_BASE_URL = "https://d17h27t6h515a5.cloudfront.net/";
+    private RecipesApi recipesApi;
+
     public RecipesApi getApiController() {
+        if (recipesApi != null) return recipesApi;
 
         Gson gson = new GsonBuilder()
                 .setLenient()
@@ -22,7 +27,7 @@ public class RecipeApiController {
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
-        RecipesApi recipesApi = retrofit.create(RecipesApi.class);
+        recipesApi = retrofit.create(RecipesApi.class);
 
         return recipesApi;
     }

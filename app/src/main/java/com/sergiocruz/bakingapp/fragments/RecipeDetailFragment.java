@@ -1,6 +1,9 @@
 package com.sergiocruz.bakingapp.fragments;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +13,10 @@ import android.widget.TextView;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
+import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
+
+import java.util.List;
 
 /**
  * A fragment representing a single recipe detail screen.
@@ -34,9 +40,17 @@ public class RecipeDetailFragment extends Fragment {
     public RecipeDetailFragment() {
     }
 
+    // https://stackoverflow.com/questions/44272914/sharing-data-between-fragments-using-new-architecture-component-viewmodel
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ViewModelProviders.of(RecipeDetailFragment.this).get(MainFragmentViewModel.class).getAllRecipes().observe(this, new Observer<List<Recipe>>() {
+            @Override
+            public void onChanged(@Nullable List<Recipe> recipeList) {
+                // TODO Do stuff
+            }
+        });
 
         if (savedInstanceState != null) {
             recipe = savedInstanceState.getParcelable(ARG_RECIPE_ITEM);

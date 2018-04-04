@@ -1,5 +1,6 @@
 package com.sergiocruz.bakingapp.fragments;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -23,7 +24,6 @@ import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
 import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
-import com.sergiocruz.bakingapp.model.RecipesDataRepository;
 
 import java.util.List;
 
@@ -62,12 +62,11 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
         adapter = new RecipeAdapter(this);
         setupRecyclerView(recyclerView, adapter);
 
-        RecipesDataRepository repository = new RecipesDataRepository(mContext);
-
+        // Start the ViewModel
         viewModel = ViewModelProviders.of(MainFragment.this).get(MainFragmentViewModel.class);
-        viewModel.init(repository, false);
 
-        viewModel.getAllRecipes().observe(MainFragment.this, new Observer<List<Recipe>>() {
+        LiveData<List<Recipe>> allRecipes = viewModel.getAllRecipes();
+        allRecipes.observe(MainFragment.this, new Observer<List<Recipe>>() {
             /**
              * Called when the data is changed.
              * @param recipesList The new data
@@ -105,6 +104,7 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
     @Override
     public void onRecipeClicked(Recipe recipe) {
         // start Detail Activity with the recipe details
+        // Sends the complete Selected Recipe
         Intent intent = new Intent(mContext, RecipeDetailActivity.class);
         intent.putExtra(ARG_RECIPE_ITEM, recipe);
         startActivity(intent);

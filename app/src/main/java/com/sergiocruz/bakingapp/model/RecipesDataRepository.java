@@ -20,8 +20,8 @@ import timber.log.Timber;
 public class RecipesDataRepository {
     private final Context context;
 
+    // Repository controlling Online/Local Database data switching
     RecipeApiController webservice;
-
     RecipeDatabase recipeDatabase;
 
     public RecipesDataRepository(Context context) {
@@ -30,7 +30,11 @@ public class RecipesDataRepository {
     }
 
 
-    public LiveData<List<Recipe>> getData(Boolean getFavorites) {
+    public LiveData<List<Recipe>> getData() {
+
+        // TODO LATER
+        Boolean getFavorites = false;
+
 
         final MutableLiveData<List<Recipe>> data = new MutableLiveData<>();
 

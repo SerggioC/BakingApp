@@ -8,24 +8,18 @@ import android.support.annotation.NonNull;
 import java.util.List;
 
 public class MainFragmentViewModel extends AndroidViewModel {
-
+    private RecipesDataRepository dataRepository;
     private LiveData<List<Recipe>> recipesList;
 
     public MainFragmentViewModel(@NonNull Application application) {
         super(application);
-    }
-
-    public void init(RecipesDataRepository dataRepository, Boolean getFavorites) {
-        if (this.recipesList != null) {
-            return;
-        }
-        this.recipesList = dataRepository.getData(getFavorites);
+        this.dataRepository = new RecipesDataRepository(getApplication().getApplicationContext());
+        this.recipesList = dataRepository.getData();
     }
 
     public LiveData<List<Recipe>> getAllRecipes() {
-        return this.recipesList;
+        return recipesList;
     }
-
 
 
 }

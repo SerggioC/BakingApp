@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
+import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 
@@ -59,26 +60,52 @@ public class RecipeDetailFragment extends Fragment {
 //        if (getArguments().containsKey(ARG_RECIPE_ITEM)) {
 
 
-            //recipe = getArguments().getParcelable(ARG_RECIPE_ITEM);
+        //recipe = getArguments().getParcelable(ARG_RECIPE_ITEM);
 
-            //mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_RECIPE_ITEM));
+        //mItem = DummyContent.ITEM_MAP.get(getArguments().getString(ARG_RECIPE_ITEM));
 
 //            Activity activity = this.getActivity();
 //            CollapsingToolbarLayout appBarLayout = (CollapsingToolbarLayout) activity.findViewById(R.id.toolbar);
 //            if (appBarLayout != null) {
 //                appBarLayout.setTitle(mItem.content);
 //            }
-        }
+    }
     //}
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
 
-        // Show the dummy content as text in a TextView.
-        if (recipe != null) {
-            ((TextView) rootView.findViewById(R.id.recipe_detail_TextView)).setText(recipe.getRecipeName() + " \n \n ya yaayyayaay");
+        TextView ingredientListTextView = rootView.findViewById(R.id.ingredient_list);
+
+        List<Ingredient> ingredients = recipe.getIngredientsList();
+        int size = ingredients.size();
+        for (int i = 0; i < size; i++) {
+            Ingredient ingredient = ingredients.get(i);
+
+            StringBuilder string = new StringBuilder()
+                    .append(ingredient.getQuantity()).append(" ")
+                    .append(ingredient.getMeasure()).append(" ")
+                    .append(ingredient.getIngredient()).append("\n");
+
+            ingredientListTextView.append(string);
         }
+
+//        TextView steps = rootView.findViewById(R.id.steps_list_simple);
+//
+//        List<Ingredient> ingredients = recipe.getIngredientsList();
+//        int size = ingredients.size();
+//        for (int i = 0; i < size; i++) {
+//            Ingredient ingredient = ingredients.get(i);
+//
+//            StringBuilder string = new StringBuilder()
+//                    .append(ingredient.getQuantity()).append(" ")
+//                    .append(ingredient.getMeasure()).append(" ")
+//                    .append(ingredient.getIngredient()).append("\n");
+//
+//            ingredientListTextView.append(string);
+//        }
+
 
         return rootView;
     }

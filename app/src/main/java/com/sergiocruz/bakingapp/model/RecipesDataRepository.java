@@ -102,7 +102,8 @@ public class RecipesDataRepository {
 
         RecipesDao recipesDao = recipeDatabase.recipesDao();
 
-        for (int i = 0; i < recipeList.size(); i++) {
+        int size = recipeList.size();
+        for (int i = 0; i < size; i++) {
 
             Recipe recipe = recipeList.get(i);
             recipesDao.addRecipe(recipe);

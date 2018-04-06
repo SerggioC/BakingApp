@@ -1,7 +1,10 @@
 package com.sergiocruz.bakingapp.fragments;
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,6 +17,7 @@ import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeStepAdapter;
+import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 
@@ -25,7 +29,7 @@ import static com.sergiocruz.bakingapp.fragments.MainFragment.RECYCLER_VIEW_POSI
  * in two-pane mode (on tablets) or a {@link RecipeDetailActivity}
  * on handsets.
  */
-public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener{
+public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener {
     /**
      * The fragment argument representing the recipe item
      * that this fragment represents.
@@ -35,12 +39,17 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     private Recipe recipe;
     private RecyclerView recyclerView;
     private RecipeStepAdapter adapter;
+    private Boolean isTwoPane;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
     public RecipeDetailFragment() {
+    }
+
+    public void setRecipe(Recipe recipe) {
+        this.recipe = recipe;
     }
 
     // https://stackoverflow.com/questions/44272914/sharing-data-between-fragments-using-new-architecture-component-viewmodel
@@ -100,11 +109,18 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             recyclerView.smoothScrollToPosition(position);
         }
 
-        return rootView;
-    }
+        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
-    public void setRecipe(Recipe recipe) {
-        this.recipe = recipe;
+        if (isTwoPane) {
+            ViewModelProviders.of(this).get(MainFragmentViewModel.class).getRecipeStepNumber().observe(this, new Observer<Integer>() {
+                @Override
+                public void onChanged(@Nullable Integer integer) {
+                    // TODO change outline on current step
+
+                }
+            });
+        }
+        return rootView;
     }
 
     @Override
@@ -115,7 +131,21 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
 
     @Override
-    public void onRecipeStepClicked(RecipeStep recipeStep) {
-        // TODO update fragment or swap fragment
+    public void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked) {
+
+        if (isTwoPane) {
+
+            ViewModelProviders.of(this).get(MainFragmentViewModel.class).setRecipeStep(recipeStep);
+
+        } else {
+            RecipeStepFragment recipeStepFragment = new RecipeStepFragment();
+            recipeStepFragment.setRecipeStep(recipeStep);
+            recipeStepFragment.setStepNumber(stepClicked);
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.recipe_detail_fragment_container, recipeStepFragment)
+                    .addToBackStack(null)
+                    .commit();
+        }
+
     }
 }

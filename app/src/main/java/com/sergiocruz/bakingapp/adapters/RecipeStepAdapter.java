@@ -52,7 +52,6 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-
         RecyclerView.ViewHolder holder = null;
         switch (viewType) {
             case TYPE_HEADER: {
@@ -67,10 +66,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                 holder = new RecipeStepViewHolder(view);
                 break;
             }
-
-
         }
-
         return holder;
     }
 
@@ -114,7 +110,6 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         }
 
-
     }
 
     @Override
@@ -123,7 +118,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public interface RecipeStepClickListener {
-        void onRecipeStepClicked(RecipeStep recipeStep);
+        void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked);
     }
 
     class HeaderStepViewHolder extends RecyclerView.ViewHolder {
@@ -131,14 +126,11 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         final TextView ingredientsNum;
         final TextView stepsNum;
 
-
         public HeaderStepViewHolder(View itemView) {
             super(itemView);
             ingredientsNum = itemView.findViewById(R.id.ingredients_num);
             stepsNum = itemView.findViewById(R.id.steps_num);
             ingredientListTextView = itemView.findViewById(R.id.ingredient_list);
-
-
         }
     }
 
@@ -152,10 +144,11 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             recipeImageIcon = itemView.findViewById(R.id.step_image);
             recipeStepResume = itemView.findViewById(R.id.step_resume);
 
-            itemView.setOnClickListener(view ->
-                    mRecipeStepClickListener.onRecipeStepClicked(recipeStepList.get(getAdapterPosition())));
+            itemView.setOnClickListener(view -> {
+                int stepClicked = getAdapterPosition() - 1;
+                mRecipeStepClickListener.onRecipeStepClicked(recipeStepList.get(stepClicked), stepClicked);
+            });
         }
-
     }
 
 }

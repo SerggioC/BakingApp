@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<android.support.v4.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -13,6 +13,7 @@
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:layout_marginTop="4dp"
+        android:paddingBottom="8dp"
         app:cardCornerRadius="@dimen/corner_radius">
 
         <android.support.constraint.ConstraintLayout
@@ -30,33 +31,12 @@
                 android:fontFamily="@font/dancing_script_regular"
                 android:textAppearance="?attr/textAppearanceListItem"
                 android:textColor="@color/brown700"
-                android:textSize="20sp"
+                android:textSize="30sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="@tools:sample/full_names"/>
-
-            <TextView
-                android:id="@+id/ingredient"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/textview_underline"
-                android:textAppearance="?attr/textAppearanceListItem"
-                app:layout_constraintEnd_toEndOf="@+id/ingredients_num"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/servings"
-                tools:text="Ingredients:"/>
-
-            <TextView
-                android:id="@+id/ingredient_list"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginTop="8dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/ingredient"/>
 
             <TextView
                 android:id="@+id/servings"
@@ -66,41 +46,7 @@
                 android:textAppearance="?attr/textAppearanceListItem"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/recipe_name"
-                tools:text="Serving Size"/>
-
-
-            <TextView
-                android:id="@+id/steps"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/textview_underline"
-                android:textAppearance="?attr/textAppearanceListItem"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/ingredient_list"
-                tools:text="Steps"/>
-
-
-            <TextView
-                android:id="@+id/steps_list_simple"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginTop="8dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/steps"/>
-
-
-            <TextView
-                android:id="@+id/ingredients_num"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textAlignment="viewEnd"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/ingredient"
-                tools:text="12"/>
+                android:text="Serving Size"/>
 
             <TextView
                 android:id="@+id/servings_num"
@@ -112,23 +58,24 @@
                 app:layout_constraintTop_toTopOf="@+id/servings"
                 tools:text="10"/>
 
-            <TextView
-                android:id="@+id/steps_num"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="end"
-                android:textAlignment="viewEnd"
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recipe_steps_recyclerview"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="4dp"
+                android:nestedScrollingEnabled="false"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/steps"
-                tools:text="20"/>
-
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/servings_num"
+                tools:listheader="@layout/recipe_steps_headview_item"
+                tools:listitem="@layout/recipe_step_list_item"/>
 
         </android.support.constraint.ConstraintLayout>
 
 
     </android.support.v7.widget.CardView>
 
-</ScrollView>
+</android.support.v4.widget.NestedScrollView>
 
 
 

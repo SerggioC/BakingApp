@@ -13,7 +13,7 @@ import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import java.util.List;
 
-import static android.arch.persistence.room.OnConflictStrategy.ABORT;
+import static android.arch.persistence.room.OnConflictStrategy.REPLACE;
 
 @Dao
 public interface RecipesDao {
@@ -45,22 +45,22 @@ public interface RecipesDao {
     Integer getColumnIdFromRecipeId(Integer recipeId);
 
 
-    @Insert(onConflict = ABORT)
+    @Insert(onConflict = REPLACE)
     void addRecipe(Recipe recipe);
 
-    @Insert(onConflict = ABORT)
+    @Insert(onConflict = REPLACE)
     void addIngredientList(List<Ingredient> ingredientList);
 
-    @Insert(onConflict = ABORT)
+    @Insert(onConflict = REPLACE)
     void addStepList(List<RecipeStep> recipeStepList);
 
-    @Insert(onConflict = ABORT)
+    @Insert(onConflict = REPLACE)
     void addIngredient(Ingredient ingredient);
 
-    @Insert(onConflict = ABORT)
+    @Insert(onConflict = REPLACE)
     void addStep(RecipeStep recipeStep);
 
-    @Insert(onConflict = ABORT)
+    @Insert(onConflict = REPLACE)
     void addRecipe(List<Recipe> recipeList);
 
 

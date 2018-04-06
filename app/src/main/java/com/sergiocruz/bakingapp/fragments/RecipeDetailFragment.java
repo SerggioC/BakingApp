@@ -1,10 +1,10 @@
 package com.sergiocruz.bakingapp.fragments;
 
-import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +13,11 @@ import android.widget.TextView;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
-import com.sergiocruz.bakingapp.model.Ingredient;
-import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
+import com.sergiocruz.bakingapp.adapters.RecipeStepAdapter;
 import com.sergiocruz.bakingapp.model.Recipe;
+import com.sergiocruz.bakingapp.model.RecipeStep;
 
-import java.util.List;
+import static com.sergiocruz.bakingapp.fragments.MainFragment.RECYCLER_VIEW_POSITION;
 
 /**
  * A fragment representing a single recipe detail screen.
@@ -25,7 +25,7 @@ import java.util.List;
  * in two-pane mode (on tablets) or a {@link RecipeDetailActivity}
  * on handsets.
  */
-public class RecipeDetailFragment extends Fragment {
+public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener{
     /**
      * The fragment argument representing the recipe item
      * that this fragment represents.
@@ -33,6 +33,8 @@ public class RecipeDetailFragment extends Fragment {
     public static final String ARG_RECIPE_ITEM = "recipe_item";
 
     private Recipe recipe;
+    private RecyclerView recyclerView;
+    private RecipeStepAdapter adapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -46,12 +48,14 @@ public class RecipeDetailFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        ViewModelProviders.of(RecipeDetailFragment.this).get(MainFragmentViewModel.class).getAllRecipes().observe(this, new Observer<List<Recipe>>() {
-            @Override
-            public void onChanged(@Nullable List<Recipe> recipeList) {
-                // TODO Do stuff
-            }
-        });
+//        ViewModelProviders.of(RecipeDetailFragment.this).get(MainFragmentViewModel.class).getAllRecipes().observe(this, new Observer<List<Recipe>>() {
+//            @Override
+//            public void onChanged(@Nullable List<Recipe> recipeList) {
+//                // TODO Do stuff
+//                adapter.swapRecipeStepData(d);
+//
+//            }
+//        });
 
         if (savedInstanceState != null) {
             recipe = savedInstanceState.getParcelable(ARG_RECIPE_ITEM);
@@ -76,36 +80,25 @@ public class RecipeDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
 
-        TextView ingredientListTextView = rootView.findViewById(R.id.ingredient_list);
+        Context context = getContext();
 
-        List<Ingredient> ingredients = recipe.getIngredientsList();
-        int size = ingredients.size();
-        for (int i = 0; i < size; i++) {
-            Ingredient ingredient = ingredients.get(i);
+        TextView recipeNameTextView = rootView.findViewById(R.id.recipe_name);
+        recipeNameTextView.setText(recipe.getRecipeName());
 
-            StringBuilder string = new StringBuilder()
-                    .append(ingredient.getQuantity()).append(" ")
-                    .append(ingredient.getMeasure()).append(" ")
-                    .append(ingredient.getIngredient()).append("\n");
+        TextView servingSizeTV = rootView.findViewById(R.id.servings_num);
+        servingSizeTV.setText(recipe.getServings() + "");
 
-            ingredientListTextView.append(string);
+        recyclerView = rootView.findViewById(R.id.recipe_steps_recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        recyclerView.setHasFixedSize(true);
+        adapter = new RecipeStepAdapter(context, this);
+        adapter.swapRecipeStepData(recipe.getStepsList(), recipe.getIngredientsList());
+        recyclerView.setAdapter(adapter);
+
+        if (savedInstanceState != null) {
+            int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
+            recyclerView.smoothScrollToPosition(position);
         }
-
-//        TextView steps = rootView.findViewById(R.id.steps_list_simple);
-//
-//        List<Ingredient> ingredients = recipe.getIngredientsList();
-//        int size = ingredients.size();
-//        for (int i = 0; i < size; i++) {
-//            Ingredient ingredient = ingredients.get(i);
-//
-//            StringBuilder string = new StringBuilder()
-//                    .append(ingredient.getQuantity()).append(" ")
-//                    .append(ingredient.getMeasure()).append(" ")
-//                    .append(ingredient.getIngredient()).append("\n");
-//
-//            ingredientListTextView.append(string);
-//        }
-
 
         return rootView;
     }
@@ -117,7 +110,12 @@ public class RecipeDetailFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle currentState) {
         currentState.putParcelable(ARG_RECIPE_ITEM, recipe);
+        currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
     }
 
 
+    @Override
+    public void onRecipeStepClicked(RecipeStep recipeStep) {
+        // TODO update fragment or swap fragment
+    }
 }

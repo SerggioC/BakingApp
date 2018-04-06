@@ -21,9 +21,7 @@ public class CompleteRecipe {
     public List<RecipeStep> recipeStepList;
 
 
-    public Recipe getRecipe() {
-        return recipe;
-    }
+    public Recipe getRecipe() { return recipe; }
 
     public List<Ingredient> getIngredientList() {
         return ingredientList;

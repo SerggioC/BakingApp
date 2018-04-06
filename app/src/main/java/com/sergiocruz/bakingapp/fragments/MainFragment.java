@@ -92,6 +92,7 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }
+        recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);
     }
 

@@ -57,6 +57,7 @@ public class RecipesDataRepository {
     private void getDataFromDB(MutableLiveData<List<Recipe>> data) {
         int number = recipeDatabase.recipesDao().getNumberOfRecipes();
         Timber.i("number of elements in database = " + number);
+
         List<CompleteRecipe> completeRecipeList = recipeDatabase.recipesDao().getAllCompleteRecipes();
 
         List<Recipe> recipeList = new ArrayList<>(completeRecipeList.size());

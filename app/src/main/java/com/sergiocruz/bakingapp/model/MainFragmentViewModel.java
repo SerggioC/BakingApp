@@ -13,11 +13,15 @@ public class MainFragmentViewModel extends AndroidViewModel {
     private LiveData<List<Recipe>> recipesList;
     private MutableLiveData<RecipeStep> recipeStep;
     private MutableLiveData<Integer> recipeStepNumber;
+    private MutableLiveData<List<RecipeStep>> recipeStepList;
 
     public MainFragmentViewModel(@NonNull Application application) {
         super(application);
         this.dataRepository = new RecipesDataRepository(getApplication().getApplicationContext());
         this.recipesList = dataRepository.getData();
+        recipeStep = new MutableLiveData<>();
+        recipeStepNumber = new MutableLiveData<>();
+        recipeStepList = new MutableLiveData<>();
     }
 
     public LiveData<List<Recipe>> getAllRecipes() {
@@ -38,5 +42,13 @@ public class MainFragmentViewModel extends AndroidViewModel {
 
     public void setRecipeStepNumber(Integer recipeStepNumber) {
         this.recipeStepNumber.setValue(recipeStepNumber);
+    }
+
+    public void setRecipeStepList(List<RecipeStep> recipeStepList) {
+        this.recipeStepList.setValue(recipeStepList);
+    }
+
+    public LiveData<List<RecipeStep>> getRecipeStepList() {
+        return recipeStepList;
     }
 }

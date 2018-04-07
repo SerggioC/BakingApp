@@ -1,5 +1,6 @@
 package com.sergiocruz.bakingapp.fragments;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -7,6 +8,11 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.transition.ChangeBounds;
+import android.support.transition.ChangeClipBounds;
+import android.support.transition.ChangeImageTransform;
+import android.support.transition.ChangeTransform;
+import android.support.transition.TransitionSet;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +22,8 @@ import android.widget.TextView;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
 import com.sergiocruz.bakingapp.model.RecipeStep;
+
+import java.util.List;
 
 public class RecipeStepFragment extends Fragment {
     private RecipeStep recipeStep;
@@ -31,6 +39,30 @@ public class RecipeStepFragment extends Fragment {
 
     public void setStepNumber(int stepNumber) {
         this.stepNumber = stepNumber;
+    }
+
+    public class DetailsTransition extends TransitionSet {
+        public DetailsTransition() {
+            setDuration(400);
+            setOrdering(ORDERING_TOGETHER);
+            addTransition(new ChangeBounds())
+                    .addTransition(new ChangeTransform())
+                    .addTransition(new ChangeImageTransform())
+                    .addTransition(new ChangeClipBounds());
+        }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setTransitions();
+    }
+
+    private void setTransitions() {
+        this.setSharedElementEnterTransition(new DetailsTransition());
+        this.setEnterTransition(new DetailsTransition());
+        this.setExitTransition(new DetailsTransition());
+        this.setSharedElementReturnTransition(new DetailsTransition());
     }
 
     /**
@@ -61,7 +93,10 @@ public class RecipeStepFragment extends Fragment {
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
         if (isTwoPane) {
-            ViewModelProviders.of(this).get(MainFragmentViewModel.class).getRecipeStep().observe(this, new Observer<RecipeStep>() {
+            MainFragmentViewModel viewModel = ViewModelProviders.of(getActivity()).get(MainFragmentViewModel.class);
+            LiveData<List<RecipeStep>> recipeStepLiveData = viewModel.getRecipeStepList();
+            this.recipeStep = recipeStepLiveData.getValue().get(0); // On Starting fragment start at step 0
+            viewModel.getRecipeStep().observe(this, new Observer<RecipeStep>() {
                 @Override
                 public void onChanged(@Nullable RecipeStep recipeStep) {
                     setRecipeStep(recipeStep);
@@ -75,13 +110,21 @@ public class RecipeStepFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+
+    }
+
     private void populateFragmentUI(View rootView) {
         TextView stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
         stepDetailTV.setText("Step number " + stepNumber + "\n" + recipeStep.getDescription());
 
         com.google.android.exoplayer2.ui.PlayerView exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
         exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.ic_chef));
+        //ViewCompat.setTransitionName(exoPlayerView, getString(R.string.step_detail_transition_name));
     }
+
 
 
 }

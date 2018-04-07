@@ -24,5 +24,6 @@ Room foreign Keys>
 https://android.jlelse.eu/android-architecture-components-room-relationships-bf473510c14a
 
 
+https://stackoverflow.com/questions/44272914/sharing-data-between-fragments-using-new-architecture-component-viewmodel
 
 https://www.flaticon.com/free-icon/chef_481486#term=chef%20hat&page=1&position=1

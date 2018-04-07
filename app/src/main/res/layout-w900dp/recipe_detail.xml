@@ -28,16 +28,14 @@
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <include
+            <FrameLayout
                 android:id="@+id/recipe_detail_fragment_container"
-                layout="@layout/fragment_recipe_detail"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="3"/>
 
-            <include
-                android:id="@+id/recipe_step_fragment"
-                layout="@layout/fragment_recipe_step"
+            <FrameLayout
+                android:id="@+id/recipe_step_fragment_container"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="7"/>

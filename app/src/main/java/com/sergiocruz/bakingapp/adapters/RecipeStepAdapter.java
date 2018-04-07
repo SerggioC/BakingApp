@@ -107,7 +107,6 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             String shortDesc = recipeStep.getShortDesc();
             String description = TextUtils.isEmpty(shortDesc) ? "View Recipe Step " + position : shortDesc;
             viewHolder.recipeStepResume.setText(description);
-
         }
 
     }
@@ -136,7 +135,6 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     class RecipeStepViewHolder extends RecyclerView.ViewHolder {
         final ImageView recipeImageIcon;
-
         final TextView recipeStepResume;
 
         public RecipeStepViewHolder(View itemView) {
@@ -146,7 +144,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             itemView.setOnClickListener(view -> {
                 int stepClicked = getAdapterPosition() - 1;
-                mRecipeStepClickListener.onRecipeStepClicked(recipeStepList.get(stepClicked), stepClicked);
+                mRecipeStepClickListener.onRecipeStepClicked(recipeStepList.get(stepClicked), stepClicked); // correct array index
             });
         }
     }

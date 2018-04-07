@@ -6,11 +6,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
@@ -57,17 +59,9 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        ViewModelProviders.of(RecipeDetailFragment.this).get(MainFragmentViewModel.class).getAllRecipes().observe(this, new Observer<List<Recipe>>() {
-//            @Override
-//            public void onChanged(@Nullable List<Recipe> recipeList) {
-//                // TODO Do stuff
-//                adapter.swapRecipeStepData(d);
-//
-//            }
-//        });
-
         if (savedInstanceState != null) {
-            recipe = savedInstanceState.getParcelable(ARG_RECIPE_ITEM);
+            if (getArguments().containsKey(ARG_RECIPE_ITEM))
+                recipe = savedInstanceState.getParcelable(ARG_RECIPE_ITEM);
         }
 
 //        if (getArguments().containsKey(ARG_RECIPE_ITEM)) {
@@ -83,7 +77,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 //                appBarLayout.setTitle(mItem.content);
 //            }
     }
-    //}
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -112,7 +106,10 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
         if (isTwoPane) {
-            ViewModelProviders.of(this).get(MainFragmentViewModel.class).getRecipeStepNumber().observe(this, new Observer<Integer>() {
+            MainFragmentViewModel viewModel = ViewModelProviders.of(getActivity()).get(MainFragmentViewModel.class);
+            viewModel.setRecipeStepList(recipe.getStepsList());
+            viewModel.setRecipeStepNumber(0);
+            viewModel.getRecipeStepNumber().observe(this, new Observer<Integer>() {
                 @Override
                 public void onChanged(@Nullable Integer integer) {
                     // TODO change outline on current step
@@ -135,13 +132,19 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         if (isTwoPane) {
 
-            ViewModelProviders.of(this).get(MainFragmentViewModel.class).setRecipeStep(recipeStep);
+            ViewModelProviders.of(getActivity()).get(MainFragmentViewModel.class).setRecipeStep(recipeStep);
 
         } else {
+            ImageView image = recyclerView.getLayoutManager().findViewByPosition(stepClicked + 1).findViewById(R.id.step_image);
+            String transitionName = getString(R.string.step_detail_transition_name);
+            ViewCompat.setTransitionName(image, transitionName);
+
             RecipeStepFragment recipeStepFragment = new RecipeStepFragment();
             recipeStepFragment.setRecipeStep(recipeStep);
             recipeStepFragment.setStepNumber(stepClicked);
-            getFragmentManager().beginTransaction()
+            getFragmentManager()
+                    .beginTransaction()
+                    .addSharedElement(image, transitionName)
                     .replace(R.id.recipe_detail_fragment_container, recipeStepFragment)
                     .addToBackStack(null)
                     .commit();

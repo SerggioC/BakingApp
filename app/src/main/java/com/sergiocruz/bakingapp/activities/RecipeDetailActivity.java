@@ -1,6 +1,7 @@
 package com.sergiocruz.bakingapp.activities;
 
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -8,6 +9,7 @@ import android.view.MenuItem;
 
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
+import com.sergiocruz.bakingapp.fragments.RecipeStepFragment;
 import com.sergiocruz.bakingapp.model.Recipe;
 
 /**
@@ -57,9 +59,23 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
             RecipeDetailFragment recipeDetailFragment = new RecipeDetailFragment();
             recipeDetailFragment.setRecipe(recipe);
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.recipe_detail_fragment_container, recipeDetailFragment)
-                    .commit();
+            FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+
+            Boolean isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
+            if (isTwoPane) {
+                RecipeStepFragment recipeStepFragment = new RecipeStepFragment();
+                fragmentTransaction
+                        .replace(R.id.recipe_detail_fragment_container, recipeDetailFragment)
+                        .replace(R.id.recipe_step_fragment_container, recipeStepFragment)
+                        .commit();
+
+            } else {
+                fragmentTransaction
+                        .replace(R.id.recipe_detail_fragment_container, recipeDetailFragment)
+                        .commit();
+
+            }
+
         }
     }
 

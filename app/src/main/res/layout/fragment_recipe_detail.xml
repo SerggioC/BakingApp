@@ -64,7 +64,6 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/servings_num"
-                tools:listheader="@layout/recipe_steps_headview_item"
                 tools:listitem="@layout/recipe_step_list_item"/>
 
         </android.support.constraint.ConstraintLayout>

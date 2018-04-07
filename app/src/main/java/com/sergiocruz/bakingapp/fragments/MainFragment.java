@@ -63,7 +63,7 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
         setupRecyclerView(recyclerView, adapter);
 
         // Start the ViewModel
-        viewModel = ViewModelProviders.of(MainFragment.this).get(MainFragmentViewModel.class);
+        viewModel = ViewModelProviders.of(getActivity()).get(MainFragmentViewModel.class);
 
         LiveData<List<Recipe>> allRecipes = viewModel.getAllRecipes();
         allRecipes.observe(MainFragment.this, new Observer<List<Recipe>>() {

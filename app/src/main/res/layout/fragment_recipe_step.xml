@@ -14,6 +14,7 @@
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
         android:adjustViewBounds="true"
+        android:transitionName="@string/step_detail_transition_name"
         app:layout_constraintBottom_toTopOf="@+id/horizontalGuideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -26,6 +27,28 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.4"/>
 
+    <Button
+        android:id="@+id/previous_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:tooltipText="@string/previous"
+        android:background="@drawable/ic_previous"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/horizontalGuideline"/>
+
+    <Button
+        android:id="@+id/next_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/ic_next"
+        android:tooltipText="@string/next"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/previous_btn"/>
+
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"
@@ -33,7 +56,7 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/horizontalGuideline">
+        app:layout_constraintTop_toBottomOf="@+id/previous_btn">
 
         <TextView
             android:id="@+id/recipe_step_detail_TextView"

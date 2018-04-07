@@ -4,4 +4,7 @@
     <string name="background_description">Baking Image Background</string>
     <string name="step_image_desc">Recipe recipeStep sample image</string>
     <string name="serving_size">Serving Size</string>
+    <string name="step_detail_transition_name">DetailsTransition</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
 </resources>

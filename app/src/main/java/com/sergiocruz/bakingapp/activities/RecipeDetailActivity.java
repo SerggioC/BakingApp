@@ -1,5 +1,6 @@
 package com.sergiocruz.bakingapp.activities;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -10,7 +11,10 @@ import android.view.MenuItem;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
 import com.sergiocruz.bakingapp.fragments.RecipeStepFragment;
+import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
+
+import timber.log.Timber;
 
 /**
  * An activity representing a single recipe detail screen. This
@@ -28,7 +32,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         // Show the Up button in the action bar.
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -43,7 +46,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         // In this case, the fragment will automatically be re-added
         // to its container so we don't need to manually add it.
         // For more information, see the Fragments API guide at:
-        //
         // http://developer.android.com/guide/components/fragments.html
         //
         if (savedInstanceState == null) {
@@ -52,13 +54,18 @@ public class RecipeDetailActivity extends AppCompatActivity {
 
             //Bundle arguments = new Bundle();
             Recipe recipe = getIntent().getParcelableExtra(RecipeDetailFragment.ARG_RECIPE_ITEM);
+            ActivityViewModel viewModel = ViewModelProviders.of(this).get(ActivityViewModel.class);
+            viewModel.init();
+            viewModel.setRecipe(recipe);
+
 
             //arguments.putParcelable(RecipeDetailFragment.ARG_RECIPE_ITEM, recipe);
 
             //recipeDetailFragment.setArguments(arguments);
 
             RecipeDetailFragment recipeDetailFragment = new RecipeDetailFragment();
-            recipeDetailFragment.setRecipe(recipe);
+            //recipeDetailFragment.setRecipe(recipe);
+
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
 
             Boolean isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
@@ -73,7 +80,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
                 fragmentTransaction
                         .replace(R.id.recipe_detail_fragment_container, recipeDetailFragment)
                         .commit();
-
             }
 
         }
@@ -86,7 +92,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
             // This ID represents the Home or Up button. In the case of this
             // activity, the Up button is shown. For
             // more details, see the Navigation pattern on Android Design:
-            //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
             //navigateUpTo(new Intent(this, MainActivity.class));
@@ -97,10 +102,10 @@ public class RecipeDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
     @Override
     public void onBackPressed() {
         int count = getSupportFragmentManager().getBackStackEntryCount();
+        Timber.i("Back Stack Count = " + count);
         if (count == 0 || getResources().getBoolean(R.bool.is_two_pane)) {
             super.onBackPressed();
         } else {

@@ -1,6 +1,5 @@
 package com.sergiocruz.bakingapp.fragments;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -22,7 +21,7 @@ import android.widget.TextView;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
-import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
+import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 
 import java.util.List;
@@ -31,11 +30,11 @@ import timber.log.Timber;
 
 import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.ARG_RECIPE_ITEM;
 
-public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickListener {
-
+public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener {
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
+    private static final int GRID_SPAN_COUNT = 2;
     private Context mContext;
-    private MainFragmentViewModel viewModel;
+    private ActivityViewModel viewModel;
     private RecyclerView recyclerView;
     private RecipeAdapter adapter;
     private boolean isTwoPane;
@@ -63,20 +62,18 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
         setupRecyclerView(recyclerView, adapter);
 
         // Start the ViewModel
-        viewModel = ViewModelProviders.of(getActivity()).get(MainFragmentViewModel.class);
-
-        LiveData<List<Recipe>> allRecipes = viewModel.getAllRecipes();
-        allRecipes.observe(MainFragment.this, new Observer<List<Recipe>>() {
+        viewModel = ViewModelProviders.of(this).get(ActivityViewModel.class);
+        viewModel.getAllRecipes().observe(RecipeListFragment.this, new Observer<List<Recipe>>() {
             /**
              * Called when the data is changed.
-             * @param recipesList The new data
-             */
+             * @param recipesList The new data */
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
                 adapter.swapRecipesData(recipesList);
             }
 
         });
+
         if (savedInstanceState != null) {
             int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
             recyclerView.smoothScrollToPosition(position);
@@ -88,7 +85,7 @@ public class MainFragment extends Fragment implements RecipeAdapter.RecipeClickL
 
     private void setupRecyclerView(RecyclerView recyclerView, RecipeAdapter adapter) {
         if (isTwoPane) {
-            recyclerView.setLayoutManager(new GridLayoutManager(mContext, 3, GridLayoutManager.VERTICAL, false));
+            recyclerView.setLayoutManager(new GridLayoutManager(mContext, GRID_SPAN_COUNT, GridLayoutManager.VERTICAL, false));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }

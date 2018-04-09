@@ -27,24 +27,26 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.4"/>
 
-    <Button
+    <ImageButton
         android:id="@+id/previous_btn"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:tooltipText="@string/previous"
         android:background="@drawable/ic_previous"
+        android:contentDescription="@string/previous"
+        android:tooltipText="@string/previous"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/horizontalGuideline"/>
 
-    <Button
+    <ImageButton
         android:id="@+id/next_btn"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginRight="8dp"
         android:background="@drawable/ic_next"
+        android:contentDescription="@string/next"
         android:tooltipText="@string/next"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/previous_btn"/>

@@ -133,7 +133,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
-    class RecipeStepViewHolder extends RecyclerView.ViewHolder {
+    public class RecipeStepViewHolder extends RecyclerView.ViewHolder {
         final ImageView recipeImageIcon;
         final TextView recipeStepResume;
 

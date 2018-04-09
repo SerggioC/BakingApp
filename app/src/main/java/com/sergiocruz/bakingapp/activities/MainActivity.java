@@ -4,8 +4,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
 import com.sergiocruz.bakingapp.R;
-import com.sergiocruz.bakingapp.fragments.MainFragment;
+import com.sergiocruz.bakingapp.fragments.RecipeListFragment;
 import com.sergiocruz.bakingapp.helpers.TimberImplementation;
+
+import timber.log.Timber;
 
 /**
  * An activity representing a list of recipes. This activity
@@ -24,15 +26,18 @@ public class MainActivity extends AppCompatActivity {
 
         TimberImplementation.init();
 
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.mainFrameLayout, new MainFragment())
-                .commit();
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.recipe_list_fragment_container, new RecipeListFragment())
+                    .commit();
+        }
 
     }
 
     @Override
     public void onBackPressed() {
         int count = getFragmentManager().getBackStackEntryCount();
+        Timber.i("Back Stack Count = " + count);
         if (count == 0) {
             super.onBackPressed();
         } else {

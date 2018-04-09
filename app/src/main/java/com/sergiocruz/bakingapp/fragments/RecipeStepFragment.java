@@ -1,9 +1,7 @@
 package com.sergiocruz.bakingapp.fragments;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -17,40 +15,32 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
-import com.sergiocruz.bakingapp.model.MainFragmentViewModel;
+import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import java.util.List;
 
 public class RecipeStepFragment extends Fragment {
-    private RecipeStep recipeStep;
-    private int stepNumber;
-    private Boolean isTwoPane;
+    //    private RecipeStep recipeStep;
+//    private int stepNumber;
+    private ActivityViewModel viewModel;
+    private Integer stepNumber;
+    private List<RecipeStep> stepsList;
 
     public RecipeStepFragment() {
     }
 
-    public void setRecipeStep(RecipeStep recipeStep) {
-        this.recipeStep = recipeStep;
-    }
-
-    public void setStepNumber(int stepNumber) {
-        this.stepNumber = stepNumber;
-    }
-
-    public class DetailsTransition extends TransitionSet {
-        public DetailsTransition() {
-            setDuration(400);
-            setOrdering(ORDERING_TOGETHER);
-            addTransition(new ChangeBounds())
-                    .addTransition(new ChangeTransform())
-                    .addTransition(new ChangeImageTransform())
-                    .addTransition(new ChangeClipBounds());
-        }
-    }
+//    public void setRecipeStep(RecipeStep recipeStep) {
+//        this.recipeStep = recipeStep;
+//    }
+//
+//    public void setStepNumber(int stepNumber) {
+//        this.stepNumber = stepNumber;
+//    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -88,43 +78,65 @@ public class RecipeStepFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
 
-        Context context = getContext();
+        viewModel = ViewModelProviders.of(getActivity()).get(ActivityViewModel.class);
+        viewModel.getRecipeStep().observe(this, new Observer<RecipeStep>() {
+            @Override
+            public void onChanged(@Nullable RecipeStep recipeStep) {
+                stepNumber = viewModel.getRecipeStepNumber().getValue();
+                populateFragmentUI(rootView, recipeStep, stepNumber);
+            }
+        });
+        RecipeStep recipeStep = viewModel.getRecipeStep().getValue();
+        stepNumber = viewModel.getRecipeStepNumber().getValue();
+        if (stepNumber == null) stepNumber = -1;
+        stepsList = viewModel.getRecipe().getValue().getStepsList();
+        populateFragmentUI(rootView, recipeStep, stepNumber);
 
-        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
-
-        if (isTwoPane) {
-            MainFragmentViewModel viewModel = ViewModelProviders.of(getActivity()).get(MainFragmentViewModel.class);
-            LiveData<List<RecipeStep>> recipeStepLiveData = viewModel.getRecipeStepList();
-            this.recipeStep = recipeStepLiveData.getValue().get(0); // On Starting fragment start at step 0
-            viewModel.getRecipeStep().observe(this, new Observer<RecipeStep>() {
-                @Override
-                public void onChanged(@Nullable RecipeStep recipeStep) {
-                    setRecipeStep(recipeStep);
-                    populateFragmentUI(rootView);
-                }
-            });
-        }
-
-        populateFragmentUI(rootView);
 
         return rootView;
     }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-    }
-
-    private void populateFragmentUI(View rootView) {
+    private void populateFragmentUI(View rootView, RecipeStep recipeStep, Integer stepNumber) {
         TextView stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
-        stepDetailTV.setText("Step number " + stepNumber + "\n" + recipeStep.getDescription());
+
+        if (recipeStep == null || recipeStep == null) {
+            stepDetailTV.setText(R.string.select_step);
+        } else {
+            stepDetailTV.setText(getString(R.string.step_number) + " " + stepNumber + "\n" + recipeStep.getDescription());
+        }
 
         com.google.android.exoplayer2.ui.PlayerView exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
         exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.ic_chef));
         //ViewCompat.setTransitionName(exoPlayerView, getString(R.string.step_detail_transition_name));
+
+        ImageButton next = rootView.findViewById(R.id.next_btn);
+        next.setOnClickListener(v -> {
+            int nextStepNumber = stepNumber + 1;
+            if (nextStepNumber > stepsList.size() - 1) return;
+            viewModel.setRecipeStepNumber(nextStepNumber);
+            viewModel.setRecipeStep(stepsList.get(nextStepNumber));
+        });
+
+        ImageButton previous = rootView.findViewById(R.id.previous_btn);
+        previous.setOnClickListener(v -> {
+            int previousStepNumber = stepNumber - 1;
+            if (previousStepNumber < 0) return;
+            viewModel.setRecipeStepNumber(previousStepNumber);
+            viewModel.setRecipeStep(stepsList.get(previousStepNumber));
+        });
+
     }
 
+    public class DetailsTransition extends TransitionSet {
+        public DetailsTransition() {
+            setDuration(400);
+            setOrdering(ORDERING_TOGETHER);
+            addTransition(new ChangeBounds())
+                    .addTransition(new ChangeTransform())
+                    .addTransition(new ChangeImageTransform())
+                    .addTransition(new ChangeClipBounds());
+        }
+    }
 
 
 }

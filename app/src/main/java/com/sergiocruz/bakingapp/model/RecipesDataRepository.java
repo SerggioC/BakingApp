@@ -83,7 +83,13 @@ public class RecipesDataRepository {
                     List<Recipe> recipesList = response.body();
                     data.setValue(recipesList);
 
-                    threadExecutor.diskIO().execute(() -> addRecipeListToDB(recipesList));
+                    threadExecutor.diskIO().execute(() -> {
+                        Integer numberOfRecipes = recipeDatabase.recipesDao().getNumberOfRecipes();
+                        if (numberOfRecipes == null || numberOfRecipes == 0) {
+                            addRecipeListToDB(recipesList);
+                        }
+                    });
+
 
                 } else {
                     data.setValue(null);

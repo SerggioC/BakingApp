@@ -1,6 +1,5 @@
 package com.sergiocruz.bakingapp.fragments;
 
-import android.arch.lifecycle.Observer;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -63,14 +62,10 @@ public class RecipeStepFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
 
-        //viewModel = ViewModelProviders.of(getActivity()).get(ActivityViewModel.class);
         viewModel = ActivityViewModel.getInstance(this);
-        viewModel.getRecipeStep().observe(this, new Observer<RecipeStep>() {
-            @Override
-            public void onChanged(@Nullable RecipeStep recipeStep) {
-                stepNumber = viewModel.getRecipeStepNumber().getValue();
-                updateFragmentUI(recipeStep, stepNumber);
-            }
+        viewModel.getRecipeStep().observe(this, recipeStep -> {
+            stepNumber = viewModel.getRecipeStepNumber().getValue();
+            updateFragmentUI(recipeStep);
         });
 
         RecipeStep recipeStep = viewModel.getRecipeStep().getValue();
@@ -86,7 +81,7 @@ public class RecipeStepFragment extends Fragment {
         stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
         exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
 
-        updateFragmentUI(recipeStep, stepNumber);
+        updateFragmentUI(recipeStep);
 
         ImageButton next = rootView.findViewById(R.id.next_btn);
         next.setOnClickListener(v -> {
@@ -106,8 +101,8 @@ public class RecipeStepFragment extends Fragment {
 
     }
 
-    private void updateFragmentUI(RecipeStep recipeStep, Integer stepNumber) {
-        if (recipeStep == null || recipeStep == null) {
+    private void updateFragmentUI(RecipeStep recipeStep) {
+        if (stepNumber == -1 || recipeStep == null) {
             stepDetailTV.setText(R.string.select_step);
         } else {
             stepDetailTV.setText(getString(R.string.step_number) + " " + stepNumber + "\n" + recipeStep.getDescription());

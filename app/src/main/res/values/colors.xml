@@ -7,4 +7,5 @@
     <color name="brown700">#5d4037</color>
     <color name="green400">#66bb6a</color>
     <color name="transparent">#00000000</color>
+    <color name="step_bg">#eeeceae3</color>
 </resources>

@@ -1,13 +1,15 @@
 package com.sergiocruz.bakingapp.fragments;
 
-import android.arch.lifecycle.Observer;
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -46,6 +48,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     private Boolean isTwoPane;
     private ActivityViewModel viewModel;
     private int lastAdapterPosition = 0;
+    private NestedScrollView nestedScrollView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -84,13 +87,11 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
-        viewModel.getRecipeStepNumber().observe(this, new Observer<Integer>() {
-            @Override
-            public void onChanged(@Nullable Integer stepNumber) {
-                changeViewHolderOutline(stepNumber);
-                Timber.d("Clicked Recipe number = " + stepNumber);
-            }
+        viewModel.getRecipeStepNumber().observe(this, stepNumber -> {
+            changeViewHolderOutline(stepNumber);
+            Timber.d("Clicked Recipe number = " + stepNumber);
         });
+        nestedScrollView = rootView.findViewById(R.id.nested_scroll_view);
 
         return rootView;
     }
@@ -116,9 +117,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
     @Override
     public void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked) {
-
-        changeViewHolderOutline(stepClicked);
-
         viewModel.setRecipeStepNumber(stepClicked);
         viewModel.setRecipeStep(recipeStep);
 
@@ -152,6 +150,21 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background));
         }
 
+        if (isTwoPane) scrollIfNeeded(viewHolder.itemView);
+
         lastAdapterPosition = adapterPosition;
+    }
+
+    public void scrollIfNeeded(View view) {
+        Rect position = new Rect();
+        view.getGlobalVisibleRect(position);
+
+        Rect screen = new Rect(0, 0,
+                Resources.getSystem().getDisplayMetrics().widthPixels,
+                Resources.getSystem().getDisplayMetrics().heightPixels);
+
+        if (position.bottom + view.getHeight() >= screen.bottom || position.top - view.getHeight() <= 0) {
+            nestedScrollView.smoothScrollTo(0, screen.bottom / 2); // Scroll the view to to middle of the screen
+        }
     }
 }

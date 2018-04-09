@@ -1,6 +1,5 @@
 package com.sergiocruz.bakingapp.activities;
 
-import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -11,8 +10,6 @@ import android.view.MenuItem;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
 import com.sergiocruz.bakingapp.fragments.RecipeStepFragment;
-import com.sergiocruz.bakingapp.model.ActivityViewModel;
-import com.sergiocruz.bakingapp.model.Recipe;
 
 import timber.log.Timber;
 
@@ -52,20 +49,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
 
-            //Bundle arguments = new Bundle();
-            Recipe recipe = getIntent().getParcelableExtra(RecipeDetailFragment.ARG_RECIPE_ITEM);
-            ActivityViewModel viewModel = ViewModelProviders.of(this).get(ActivityViewModel.class);
-            viewModel.init();
-            viewModel.setRecipe(recipe);
-
-
-            //arguments.putParcelable(RecipeDetailFragment.ARG_RECIPE_ITEM, recipe);
-
-            //recipeDetailFragment.setArguments(arguments);
-
             RecipeDetailFragment recipeDetailFragment = new RecipeDetailFragment();
-            //recipeDetailFragment.setRecipe(recipe);
-
             FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
 
             Boolean isTwoPane = getResources().getBoolean(R.bool.is_two_pane);

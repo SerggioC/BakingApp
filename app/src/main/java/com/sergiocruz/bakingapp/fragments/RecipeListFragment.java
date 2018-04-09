@@ -1,7 +1,6 @@
 package com.sergiocruz.bakingapp.fragments;
 
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,8 +26,6 @@ import com.sergiocruz.bakingapp.model.Recipe;
 import java.util.List;
 
 import timber.log.Timber;
-
-import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.ARG_RECIPE_ITEM;
 
 public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener {
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
@@ -62,7 +59,7 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         setupRecyclerView(recyclerView, adapter);
 
         // Start the ViewModel
-        viewModel = ViewModelProviders.of(this).get(ActivityViewModel.class);
+        viewModel = ActivityViewModel.getInstance(this);
         viewModel.getAllRecipes().observe(RecipeListFragment.this, new Observer<List<Recipe>>() {
             /**
              * Called when the data is changed.
@@ -104,8 +101,9 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         // start Detail Activity with the recipe details
         // Sends the complete Selected Recipe
         Intent intent = new Intent(mContext, RecipeDetailActivity.class);
-        intent.putExtra(ARG_RECIPE_ITEM, recipe);
         startActivity(intent);
+        viewModel.setRecipe(recipe);
+        viewModel.setRecipeStepNumber(-1);
 
         Timber.d(recipe.getRecipeName());
     }

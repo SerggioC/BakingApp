@@ -1,8 +1,6 @@
 package com.sergiocruz.bakingapp.fragments;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -42,18 +40,12 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
      * The fragment argument representing the recipe item
      * that this fragment represents.
      */
-    public static final String ARG_RECIPE_ITEM = "recipe_item";
     private Recipe recipe;
     private RecyclerView recyclerView;
     private RecipeStepAdapter adapter;
     private Boolean isTwoPane;
     private ActivityViewModel viewModel;
     private int lastAdapterPosition = 0;
-    private Integer stepNumber;
-
-    private void setThisStepNumber(Integer stepNumber) {
-        this.stepNumber = stepNumber;
-    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -68,7 +60,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         Context context = getContext();
 
-        viewModel = ViewModelProviders.of(getActivity()).get(ActivityViewModel.class);
+        viewModel = ActivityViewModel.getInstance(this);
         recipe = viewModel.getRecipe().getValue();
 
         TextView recipeNameTextView = rootView.findViewById(R.id.recipe_name);
@@ -92,34 +84,26 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
-        if (isTwoPane) {
-            viewModel.getRecipeStepNumber().observe(this, new Observer<Integer>() {
-                @Override
-                public void onChanged(@Nullable Integer stepNumber) {
-                    changeViewHolderOutline(stepNumber);
-                    Timber.d("Clicked Recipe number = " + stepNumber);
-                }
-            });
-        }
+        viewModel.getRecipeStepNumber().observe(this, new Observer<Integer>() {
+            @Override
+            public void onChanged(@Nullable Integer stepNumber) {
+                changeViewHolderOutline(stepNumber);
+                Timber.d("Clicked Recipe number = " + stepNumber);
+            }
+        });
+
         return rootView;
     }
-
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            /**
-             * Callback method to be invoked when the global layout state or the visibility of views
-             * within the view tree changes
-             */
+        recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                LiveData<Integer> recipeStepNumber = viewModel.getRecipeStepNumber();
-                Integer stepN = recipeStepNumber.getValue() == null ? -1 : recipeStepNumber.getValue();
-
-                changeViewHolderOutline(stepN);
-                view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                Integer recipeStepNumber = viewModel.getRecipeStepNumber().getValue();
+                changeViewHolderOutline(recipeStepNumber);
+                recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
     }
@@ -129,7 +113,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         //currentState.putParcelable(ARG_RECIPE_ITEM, recipe);
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
     }
-
 
     @Override
     public void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked) {
@@ -151,6 +134,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
                     .replace(R.id.recipe_detail_fragment_container, recipeStepFragment)
                     .addToBackStack(null)
                     .commit();
+            lastAdapterPosition = 0;
         }
 
     }

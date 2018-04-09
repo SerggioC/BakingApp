@@ -1,7 +1,6 @@
 package com.sergiocruz.bakingapp.fragments;
 
 import android.arch.lifecycle.Observer;
-import android.arch.lifecycle.ViewModelProviders;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.ui.PlayerView;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.RecipeStep;
@@ -25,34 +25,19 @@ import com.sergiocruz.bakingapp.model.RecipeStep;
 import java.util.List;
 
 public class RecipeStepFragment extends Fragment {
-    //    private RecipeStep recipeStep;
-//    private int stepNumber;
     private ActivityViewModel viewModel;
-    private Integer stepNumber;
     private List<RecipeStep> stepsList;
+    private Integer stepNumber;
+    private TextView stepDetailTV;
+    private PlayerView exoPlayerView;
 
     public RecipeStepFragment() {
     }
-
-//    public void setRecipeStep(RecipeStep recipeStep) {
-//        this.recipeStep = recipeStep;
-//    }
-//
-//    public void setStepNumber(int stepNumber) {
-//        this.stepNumber = stepNumber;
-//    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTransitions();
-    }
-
-    private void setTransitions() {
-        this.setSharedElementEnterTransition(new DetailsTransition());
-        this.setEnterTransition(new DetailsTransition());
-        this.setExitTransition(new DetailsTransition());
-        this.setSharedElementReturnTransition(new DetailsTransition());
     }
 
     /**
@@ -78,36 +63,30 @@ public class RecipeStepFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
 
-        viewModel = ViewModelProviders.of(getActivity()).get(ActivityViewModel.class);
+        //viewModel = ViewModelProviders.of(getActivity()).get(ActivityViewModel.class);
+        viewModel = ActivityViewModel.getInstance(this);
         viewModel.getRecipeStep().observe(this, new Observer<RecipeStep>() {
             @Override
             public void onChanged(@Nullable RecipeStep recipeStep) {
                 stepNumber = viewModel.getRecipeStepNumber().getValue();
-                populateFragmentUI(rootView, recipeStep, stepNumber);
+                updateFragmentUI(recipeStep, stepNumber);
             }
         });
+
         RecipeStep recipeStep = viewModel.getRecipeStep().getValue();
         stepNumber = viewModel.getRecipeStepNumber().getValue();
         if (stepNumber == null) stepNumber = -1;
         stepsList = viewModel.getRecipe().getValue().getStepsList();
-        populateFragmentUI(rootView, recipeStep, stepNumber);
-
+        setUpFragmentUI(rootView, recipeStep);
 
         return rootView;
     }
 
-    private void populateFragmentUI(View rootView, RecipeStep recipeStep, Integer stepNumber) {
-        TextView stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
+    private void setUpFragmentUI(View rootView, RecipeStep recipeStep) {
+        stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
+        exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
 
-        if (recipeStep == null || recipeStep == null) {
-            stepDetailTV.setText(R.string.select_step);
-        } else {
-            stepDetailTV.setText(getString(R.string.step_number) + " " + stepNumber + "\n" + recipeStep.getDescription());
-        }
-
-        com.google.android.exoplayer2.ui.PlayerView exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
-        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.ic_chef));
-        //ViewCompat.setTransitionName(exoPlayerView, getString(R.string.step_detail_transition_name));
+        updateFragmentUI(recipeStep, stepNumber);
 
         ImageButton next = rootView.findViewById(R.id.next_btn);
         next.setOnClickListener(v -> {
@@ -127,9 +106,18 @@ public class RecipeStepFragment extends Fragment {
 
     }
 
+    private void updateFragmentUI(RecipeStep recipeStep, Integer stepNumber) {
+        if (recipeStep == null || recipeStep == null) {
+            stepDetailTV.setText(R.string.select_step);
+        } else {
+            stepDetailTV.setText(getString(R.string.step_number) + " " + stepNumber + "\n" + recipeStep.getDescription());
+        }
+
+        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.ic_chef));
+    }
+
     public class DetailsTransition extends TransitionSet {
         public DetailsTransition() {
-            setDuration(400);
             setOrdering(ORDERING_TOGETHER);
             addTransition(new ChangeBounds())
                     .addTransition(new ChangeTransform())
@@ -138,5 +126,11 @@ public class RecipeStepFragment extends Fragment {
         }
     }
 
+    private void setTransitions() {
+        this.setSharedElementEnterTransition(new DetailsTransition());
+        this.setEnterTransition(new DetailsTransition());
+        this.setExitTransition(new DetailsTransition());
+        this.setSharedElementReturnTransition(new DetailsTransition());
+    }
 
 }

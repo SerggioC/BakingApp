@@ -24,7 +24,6 @@
         android:layout_marginRight="4dp"
         android:maxLines="1"
         android:drawableRight="@android:drawable/ic_menu_slideshow"
-        android:fontFamily="@font/dancing_script_regular"
         android:gravity="center"
         android:textSize="20sp"
         tools:text="Step resume"/>

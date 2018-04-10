@@ -12,6 +12,7 @@ import retrofit2.http.Path;
 * Retrofit API interface
 */
 public interface RecipesApi {
+//    @Headers({"Accept: application/json; charset=iso-8859-1"})
     @GET("/topher/2017/May/59121517_baking/{filename}")
     Call<List<Recipe>> getRecipes(@Path("filename") String filename);
 }

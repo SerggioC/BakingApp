@@ -21,10 +21,12 @@
         android:id="@+id/step_resume"
         android:layout_width="match_parent"
         android:layout_height="40dp"
+        android:layout_marginEnd="4dp"
         android:layout_marginRight="4dp"
-        android:maxLines="1"
+        android:drawableEnd="@android:drawable/ic_menu_slideshow"
         android:drawableRight="@android:drawable/ic_menu_slideshow"
         android:gravity="center"
+        android:maxLines="1"
         android:textSize="20sp"
         tools:text="Step resume"/>
 

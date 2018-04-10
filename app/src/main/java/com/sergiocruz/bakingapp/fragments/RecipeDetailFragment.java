@@ -70,7 +70,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         recipeNameTextView.setText(recipe.getRecipeName());
 
         TextView servingSizeTV = rootView.findViewById(R.id.servings_num);
-        servingSizeTV.setText(new StringBuilder(recipe.getServings()).toString());
+        servingSizeTV.setText(recipe.getServings().toString());
 
         adapter = new RecipeStepAdapter(context, this);
         adapter.swapRecipeStepData(recipe.getStepsList(), recipe.getIngredientsList());

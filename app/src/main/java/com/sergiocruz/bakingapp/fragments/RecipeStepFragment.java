@@ -5,7 +5,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
+import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.net.Uri;
@@ -27,24 +27,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
-import com.google.android.exoplayer2.source.LoopingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
@@ -59,22 +56,23 @@ import java.util.List;
 import timber.log.Timber;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
+import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 
 public class RecipeStepFragment extends Fragment implements Player.EventListener {
+    public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
+    public static final String NOTIFICATION_TAG = "lets_bake_notification_tag";
+    private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
+    public static final int NOTIFICATION_ID = 1;
+    private static MediaSessionCompat mMediaSession;
     private ActivityViewModel viewModel;
     private List<RecipeStep> stepsList;
     private Integer stepNumber;
     private TextView stepDetailTV;
     private PlayerView exoPlayerView;
     private SimpleExoPlayer mExoPlayer;
-    private static MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mPlaybackState;
     private NotificationManager mNotificationManager;
     private Context mContext;
-    public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
-    private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
-    public static final String NOTIFICATION_TAG = "lets_bake_notification_tag";
-    public static final int NOTIFICATION_ID = 1;
     private RecipeStep recipeStep;
 
     public RecipeStepFragment() {
@@ -120,14 +118,15 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         stepNumber = viewModel.getRecipeStepNumber().getValue();
         if (stepNumber == null) stepNumber = -1;
         stepsList = viewModel.getRecipe().getValue().getStepsList();
-        setUpFragmentUI(rootView, recipeStep);
+        setupFragmentUI(rootView, recipeStep);
 
         return rootView;
     }
 
-    private void setUpFragmentUI(View rootView, RecipeStep recipeStep) {
+    private void setupFragmentUI(View rootView, RecipeStep recipeStep) {
         stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
         exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
+        exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
 
         updateFragmentUI(recipeStep);
 
@@ -151,6 +150,21 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     }
 
+    private void changeVideo(Uri uri) {
+        Timber.i("Video Uri = " + uri);
+        String userAgent = Util.getUserAgent(mContext, "Lets_Bake");
+        MediaSource mediaSource = new ExtractorMediaSource(
+                uri,
+                new DefaultDataSourceFactory(mContext, userAgent),
+                new DefaultExtractorsFactory(),
+                null,
+                null
+        );
+
+        if (mExoPlayer == null) initializeExoPlayer(uri);
+        mExoPlayer.prepare(mediaSource);
+    }
+
     private void updateFragmentUI(RecipeStep recipeStep) {
         if (stepNumber == -1 || recipeStep == null) {
             stepDetailTV.setText(R.string.select_step);
@@ -159,18 +173,20 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         }
 
         exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.ic_chef));
+
+        changeVideo(Uri.parse(recipeStep.getVideoUrl()));
+
     }
 
     private void initializeExoPlayer(Uri uri) {
+
+        // Create an instance of the ExoPlayer.
         if (mExoPlayer == null) {
 
-            // Create an instance of the ExoPlayer.
             TrackSelector trackSelector = new DefaultTrackSelector();
-
-            LoadControl loadControl = new DefaultLoadControl(); // Controls Buffering of media
-            //mExoPlayer = ExoPlayerFactory.newSimpleInstance(this, trackSelector, loadControl);
+            //LoadControl loadControl = new DefaultLoadControl(); // Controls Buffering of media
+            //mExoPlayer = ExoPlayerFactory.newSimpleInstance(mContext, trackSelector, loadControl);
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(mContext, trackSelector);
-
             exoPlayerView.setPlayer(mExoPlayer);
 
             // Prepare the MediaSource.
@@ -183,9 +199,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
                     null
             );
 
-            LoopingMediaSource loopingSource = new LoopingMediaSource(mediaSource);
-
-            mExoPlayer.prepare(loopingSource);
+            mExoPlayer.prepare(mediaSource);
             mExoPlayer.setPlayWhenReady(true);
             mExoPlayer.addListener(this);
             getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -236,7 +250,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
      *
      * @param trackGroups     The available tracks. Never null, but may be of length zero.
      * @param trackSelections The track selections for each renderer. Never null and always of
-     *                        length {@link #getRendererCount()}, but may contain null elements.
+     *                        length {link getRendererCount()}, but may contain null elements.
      */
     @Override
     public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
@@ -254,8 +268,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     /**
-     * Called when the value returned from either {@link #getPlayWhenReady()} or
-     * {@link #getPlaybackState()} changes.
+     * Called when the value returned from either {link #getPlayWhenReady()} or
+     * {link #getPlaybackState()} changes.
      *
      * @param playWhenReady Whether playback will proceed when ready.
      * @param playbackState One of the {@code STATE} constants.
@@ -267,13 +281,10 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
             mPlaybackState.setState(PlaybackStateCompat.STATE_PLAYING, mExoPlayer.getContentPosition(), 1);
 
-            Toast.makeText(mContext, "ExoPlayer.STATE_READY playing", Toast.LENGTH_SHORT).show();
-
         } else if ((playbackState == Player.STATE_READY) && !mExoPlayer.getPlayWhenReady()) {
 
             mPlaybackState.setState(PlaybackStateCompat.STATE_PAUSED, mExoPlayer.getContentPosition(), 1);
 
-            Toast.makeText(mContext, "ExoPlayer.STATE_READY paused", Toast.LENGTH_SHORT).show();
         }
 
         mMediaSession.setPlaybackState(mPlaybackState.build());
@@ -281,7 +292,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     /**
-     * Called when the value of {@link #getRepeatMode()} changes.
+     * Called when the value of {link #getRepeatMode()} changes.
      *
      * @param repeatMode The {@link PlaybackStateCompat.RepeatMode} used for playback.
      */
@@ -291,7 +302,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     /**
-     * Called when the value of {@link #getShuffleModeEnabled()} changes.
+     * Called when the value of {link #getShuffleModeEnabled()} changes.
      *
      * @param shuffleModeEnabled Whether shuffling of windows is enabled.
      */
@@ -301,9 +312,9 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     /**
-     * Called when an error occurs. The playback state will transition to {@link #STATE_IDLE}
+     * Called when an error occurs. The playback state will transition to {link #STATE_IDLE}
      * immediately after this method is called. The player instance can still be used, and
-     * {@link #release()} must still be called on the player should it no longer be required.
+     * {link #release()} must still be called on the player should it no longer be required.
      *
      * @param error The error.
      */
@@ -332,7 +343,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     /**
      * Called when the current playback parameters change. The playback parameters may change due to
-     * a call to {@link #setPlaybackParameters(PlaybackParameters)}, or the player itself may change
+     * a call to {link #setPlaybackParameters(PlaybackParameters)}, or the player itself may change
      * them (for example, if audio playback switches to passthrough mode, where speed adjustment is
      * no longer possible).
      *
@@ -371,9 +382,9 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
                 icon, playPause,
                 MediaButtonReceiver.buildMediaButtonPendingIntent(mContext, PlaybackStateCompat.ACTION_PLAY_PAUSE));
 
-        NotificationCompat.Action restartAction = new NotificationCompat.Action(
-                R.drawable.exo_controls_previous, getString(R.string.exo_controls_previous_description),
-                MediaButtonReceiver.buildMediaButtonPendingIntent(mContext, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
+//        NotificationCompat.Action restartAction = new NotificationCompat.Action(
+//                R.drawable.exo_controls_previous, getString(R.string.exo_controls_previous_description),
+//                MediaButtonReceiver.buildMediaButtonPendingIntent(mContext, PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
 
         PendingIntent contentPendingIntent = PendingIntent.getActivity(mContext, 0, new Intent(mContext, RecipeDetailActivity.class), 0);
 
@@ -383,33 +394,16 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
                 .setContentIntent(contentPendingIntent)
                 .setSmallIcon(R.drawable.ic_muffin)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .addAction(restartAction)
-                .addAction(playPauseAction)
+                .addAction(playPauseAction) // action 0
                 .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mMediaSession.getSessionToken())
-                        .setShowActionsInCompactView(0, 1));
+                        .setShowActionsInCompactView(0));
+
+        //.addAction(restartAction)   // action 0
 
         mNotificationManager = (NotificationManager) mContext.getSystemService(NOTIFICATION_SERVICE);
         mNotificationManager.notify(NOTIFICATION_TAG, NOTIFICATION_ID, notificationCompatBuildert.build());
 
-    }
-
-    public static class MediaReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            MediaButtonReceiver.handleIntent(mMediaSession, intent);
-            Timber.d("Intent = " + intent.getAction());
-        }
-    }
-
-    public class DetailsTransition extends TransitionSet {
-        public DetailsTransition() {
-            setOrdering(ORDERING_TOGETHER);
-            addTransition(new ChangeBounds())
-                    .addTransition(new ChangeTransform())
-                    .addTransition(new ChangeImageTransform())
-                    .addTransition(new ChangeClipBounds());
-        }
     }
 
     private void setTransitions() {
@@ -429,6 +423,34 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
         Timber.w("destroying recipe step fragment");
 
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE
+                && !getResources().getBoolean(R.bool.is_two_pane)) {
+
+        }
+    }
+
+    public static class MediaReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            MediaButtonReceiver.handleIntent(mMediaSession, intent);
+            Timber.d("Intent = " + intent.getAction());
+        }
+    }
+
+    public class DetailsTransition extends TransitionSet {
+        public DetailsTransition() {
+            setOrdering(ORDERING_TOGETHER);
+            addTransition(new ChangeBounds())
+                    .addTransition(new ChangeTransform())
+                    .addTransition(new ChangeImageTransform())
+                    .addTransition(new ChangeClipBounds());
+        }
     }
 
 

@@ -163,7 +163,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
                 Resources.getSystem().getDisplayMetrics().widthPixels,
                 Resources.getSystem().getDisplayMetrics().heightPixels);
 
-        if (position.bottom + view.getHeight() >= screen.bottom || position.top - view.getHeight() <= 0) {
+        if (position.bottom + view.getHeight() >= screen.bottom || position.top - 2 * view.getHeight() <= 0) {
             nestedScrollView.smoothScrollTo(0, screen.bottom / 2); // Scroll the view to to middle of the screen
         }
     }

@@ -41,12 +41,12 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
+import com.sergiocruz.bakingapp.exoplayer.ExoCacheDataSourceFactory;
 import com.sergiocruz.bakingapp.exoplayer.MediaSessionCallBacks;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.RecipeStep;
@@ -126,7 +126,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private void setupFragmentUI(View rootView, RecipeStep recipeStep) {
         stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
         exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
-        exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+        //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
 
         updateFragmentUI(recipeStep);
 
@@ -172,7 +172,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             stepDetailTV.setText(getString(R.string.step_number) + " " + stepNumber + "\n" + recipeStep.getDescription());
         }
 
-        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.drawable.ic_chef));
+        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
 
         changeVideo(Uri.parse(recipeStep.getVideoUrl()));
 
@@ -191,9 +191,17 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
             // Prepare the MediaSource.
             String userAgent = Util.getUserAgent(mContext, "Lets_Bake");
+//            MediaSource mediaSource = new ExtractorMediaSource(
+//                    uri,
+//                    new DefaultDataSourceFactory(mContext, userAgent),
+//                    new DefaultExtractorsFactory(),
+//                    null,
+//                    null
+//            );
+
             MediaSource mediaSource = new ExtractorMediaSource(
                     uri,
-                    new DefaultDataSourceFactory(mContext, userAgent),
+                    new ExoCacheDataSourceFactory(mContext, 100 * 1024 * 1024, 5 * 1024 * 1024),
                     new DefaultExtractorsFactory(),
                     null,
                     null
@@ -203,6 +211,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             mExoPlayer.setPlayWhenReady(true);
             mExoPlayer.addListener(this);
             getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+
 
             initializeMediaSession();
 
@@ -429,6 +439,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        // if phone is on layout mode enter fullscreen with player
         if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE
                 && !getResources().getBoolean(R.bool.is_two_pane)) {
 

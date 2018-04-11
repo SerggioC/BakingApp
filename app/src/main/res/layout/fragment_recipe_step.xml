@@ -15,6 +15,8 @@
         android:layout_marginTop="8dp"
         android:adjustViewBounds="true"
         android:transitionName="@string/step_detail_transition_name"
+        app:use_artwork="true"
+        app:resize_mode="fit"
         app:layout_constraintBottom_toTopOf="@+id/horizontalGuideline"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -65,7 +67,7 @@
             android:background="@drawable/step_details_background"
             android:textSize="20sp"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:padding="8dp"
             tools:text="@tools:sample/lorem/random"/>

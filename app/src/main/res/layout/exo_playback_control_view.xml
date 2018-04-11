@@ -40,7 +40,6 @@
             android:id="@id/exo_ffwd"
             style="@style/ExoMediaButton.FastForward"/>
 
-
     </LinearLayout>
 
     <LinearLayout
@@ -74,6 +73,7 @@
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
             android:textColor="#FFBEBEBE"
+            android:background="#a0000000"
             android:textSize="14sp"
             android:textStyle="bold"/>
 

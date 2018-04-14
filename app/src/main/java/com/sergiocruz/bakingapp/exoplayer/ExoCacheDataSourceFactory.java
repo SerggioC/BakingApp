@@ -11,8 +11,6 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSink;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
-import com.google.android.exoplayer2.util.Util;
-import com.sergiocruz.bakingapp.R;
 
 import java.io.File;
 
@@ -21,15 +19,13 @@ public class ExoCacheDataSourceFactory implements DataSource.Factory {
     private final DefaultDataSourceFactory defaultDatasourceFactory;
     private final long maxFileSize, maxCacheSize;
 
-    public ExoCacheDataSourceFactory(Context context, long maxCacheSize, long maxFileSize) {
+    public ExoCacheDataSourceFactory(Context context, long maxCacheSize, long maxFileSize, String userAgent) {
         super();
         this.context = context;
         this.maxCacheSize = maxCacheSize;
         this.maxFileSize = maxFileSize;
-        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-        defaultDatasourceFactory = new DefaultDataSourceFactory(this.context,
-                bandwidthMeter,
+        defaultDatasourceFactory = new DefaultDataSourceFactory(this.context, bandwidthMeter,
                 new DefaultHttpDataSourceFactory(userAgent, bandwidthMeter));
     }
 

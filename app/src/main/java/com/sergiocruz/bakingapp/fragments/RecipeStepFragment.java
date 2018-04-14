@@ -45,6 +45,7 @@ import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.activities.FullScreenActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.exoplayer.ExoCacheDataSourceFactory;
 import com.sergiocruz.bakingapp.exoplayer.MediaSessionCallBacks;
@@ -61,8 +62,8 @@ import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 public class RecipeStepFragment extends Fragment implements Player.EventListener {
     public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
     public static final String NOTIFICATION_TAG = "lets_bake_notification_tag";
-    private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
     public static final int NOTIFICATION_ID = 1;
+    private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
     private static MediaSessionCompat mMediaSession;
     private ActivityViewModel viewModel;
     private List<RecipeStep> stepsList;
@@ -191,6 +192,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
             // Prepare the MediaSource.
             String userAgent = Util.getUserAgent(mContext, "Lets_Bake");
+
 //            MediaSource mediaSource = new ExtractorMediaSource(
 //                    uri,
 //                    new DefaultDataSourceFactory(mContext, userAgent),
@@ -199,20 +201,20 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 //                    null
 //            );
 
+
             MediaSource mediaSource = new ExtractorMediaSource(
                     uri,
-                    new ExoCacheDataSourceFactory(mContext, 100 * 1024 * 1024, 5 * 1024 * 1024),
+                    new ExoCacheDataSourceFactory(mContext, 100 * 1024 * 1024, 50 * 1024 * 1024, userAgent),
                     new DefaultExtractorsFactory(),
                     null,
                     null
             );
 
+
             mExoPlayer.prepare(mediaSource);
             mExoPlayer.setPlayWhenReady(true);
             mExoPlayer.addListener(this);
             getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
-
 
             initializeMediaSession();
 
@@ -416,13 +418,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     }
 
-    private void setTransitions() {
-        this.setSharedElementEnterTransition(new DetailsTransition());
-        this.setEnterTransition(new DetailsTransition());
-        this.setExitTransition(new DetailsTransition());
-        this.setSharedElementReturnTransition(new DetailsTransition());
-    }
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -435,15 +430,22 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     }
 
-
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         // if phone is on layout mode enter fullscreen with player
         if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE
                 && !getResources().getBoolean(R.bool.is_two_pane)) {
-
+            Intent intent = new Intent(mContext, FullScreenActivity.class);
+            startActivity(intent);
         }
+    }
+
+    private void setTransitions() {
+        this.setSharedElementEnterTransition(new DetailsTransition());
+        this.setEnterTransition(new DetailsTransition());
+        this.setExitTransition(new DetailsTransition());
+        this.setSharedElementReturnTransition(new DetailsTransition());
     }
 
     public static class MediaReceiver extends BroadcastReceiver {
@@ -463,6 +465,5 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
                     .addTransition(new ChangeClipBounds());
         }
     }
-
 
 }

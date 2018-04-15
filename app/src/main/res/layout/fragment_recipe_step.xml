@@ -37,7 +37,6 @@
         android:layout_marginStart="8dp"
         android:background="@drawable/ic_previous"
         android:contentDescription="@string/previous"
-        android:tooltipText="@string/previous"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/horizontalGuideline"/>
 
@@ -49,7 +48,6 @@
         android:layout_marginRight="8dp"
         android:background="@drawable/ic_next"
         android:contentDescription="@string/next"
-        android:tooltipText="@string/next"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/previous_btn"/>
 

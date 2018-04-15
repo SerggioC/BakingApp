@@ -13,6 +13,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_gravity="bottom"
               android:background="#a0000000"
               android:layoutDirection="ltr"
@@ -69,13 +70,30 @@
             android:id="@id/exo_duration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="#a0000000"
             android:includeFontPadding="false"
             android:paddingLeft="4dp"
             android:paddingRight="4dp"
             android:textColor="#FFBEBEBE"
-            android:background="#a0000000"
             android:textSize="14sp"
             android:textStyle="bold"/>
+
+        <FrameLayout
+            android:id="@+id/exo_fullscreen_button"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="right">
+
+            <ImageView
+                android:id="@+id/exo_fullscreen_icon"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_gravity="center"
+                android:adjustViewBounds="true"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_fullscreen_white_24dp"/>
+
+        </FrameLayout>
 
     </LinearLayout>
 

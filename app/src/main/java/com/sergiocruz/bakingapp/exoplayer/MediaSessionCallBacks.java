@@ -20,7 +20,7 @@ public class MediaSessionCallBacks extends MediaSessionCompat.Callback {
     public void onPlay() {
         super.onPlay();
         mExoPlayer.setPlayWhenReady(true);
-        Timber.i("QuizMediaSessionCallBacks onPlay");
+        Timber.i("Baking MediaSessionCallBacks onPlay");
     }
 
     /**
@@ -30,7 +30,7 @@ public class MediaSessionCallBacks extends MediaSessionCompat.Callback {
     public void onPause() {
         super.onPause();
         mExoPlayer.setPlayWhenReady(false);
-        Timber.i("QuizMediaSessionCallBacks onPause");
+        Timber.i("Baking MediaSessionCallBacks onPause");
     }
 
     /**
@@ -40,7 +40,7 @@ public class MediaSessionCallBacks extends MediaSessionCompat.Callback {
     public void onSkipToPrevious() {
         super.onSkipToPrevious();
         mExoPlayer.seekTo(0);
-        Timber.i("QuizMediaSessionCallBacks onSkipToPrevious");
+        Timber.i("Baking MediaSessionCallBacks onSkipToPrevious");
 
     }
 }

@@ -1,5 +1,7 @@
 package com.sergiocruz.bakingapp.activities;
 
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -24,7 +26,30 @@ public class RecipeDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.recipe_detail);
+//
+//        // if device is on layout mode and it's not a tablet, enter fullscreen with player
+//        Boolean fullScreen = getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE
+//                && !getResources().getBoolean(R.bool.is_two_pane);
+//
+//        if (fullScreen) {
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//
+//        View decorView = getWindow().getDecorView();
+//        decorView.setSystemUiVisibility(
+//                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+//                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+//                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION // hide nav bar
+//                        | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
+//                        | View.SYSTEM_UI_FLAG_IMMERSIVE);
+//
+//        }
+
+
+        setContentView(R.layout.activity_recipe_detail);
+
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -37,6 +62,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
             actionBar.setHomeButtonEnabled(true);
         }
 
+
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
         // (e.g. when rotating the screen from portrait to landscape).
@@ -44,7 +70,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         // to its container so we don't need to manually add it.
         // For more information, see the Fragments API guide at:
         // http://developer.android.com/guide/components/fragments.html
-        //
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
@@ -67,6 +92,13 @@ public class RecipeDetailActivity extends AppCompatActivity {
             }
 
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int a = 1;
+        a = a + 1;
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     }
 
     @Override

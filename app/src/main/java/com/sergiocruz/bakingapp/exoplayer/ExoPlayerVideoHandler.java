@@ -38,24 +38,22 @@ public class ExoPlayerVideoHandler {
         if (mExoPlayer == null) {
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(context, new DefaultTrackSelector());
             mExoPlayer.addListener(listener);
-            exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
         }
 
         mExoPlayer.clearVideoSurface();
         mExoPlayer.setVideoSurfaceView((SurfaceView) exoPlayerView.getVideoSurfaceView());
+        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher));
         mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
         exoPlayerView.setPlayer(mExoPlayer);
 
         return mExoPlayer;
     }
 
-    public void loadVideo(Context context, Uri uri) {
-        if (!uri.equals(playerUri)) {
-            this.playerUri = uri;
-            mExoPlayer.prepare(getMediaSource(context, uri));
-            goToForeground();
-        }
-
+    public void loadVideo(Context context, Uri uri, Long position) {
+        mExoPlayer.prepare(getMediaSource(context, uri));
+        if (position != null) mExoPlayer.seekTo(position);
+        mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
+        goToForeground();
     }
 
     @NonNull
@@ -82,6 +80,7 @@ public class ExoPlayerVideoHandler {
         if (mExoPlayer != null) {
             isPlayerPlaying = mExoPlayer.getPlayWhenReady();
             mExoPlayer.setPlayWhenReady(false);
+            isPlayerPlaying = false;
         }
     }
 

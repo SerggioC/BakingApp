@@ -37,7 +37,12 @@
         <activity
             android:name=".activities.FullScreenActivity"
             android:parentActivityName=".activities.RecipeDetailActivity"
-            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"/>
+            android:theme="@style/AppTheme.FullScreen">
+
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.sergiocruz.bakingapp.activities.RecipeDetailActivity"/>
+        </activity>
 
         <receiver android:name=".fragments.RecipeStepFragment$MediaReceiver">
             <intent-filter>

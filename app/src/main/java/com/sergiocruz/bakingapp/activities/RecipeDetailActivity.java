@@ -8,7 +8,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.sergiocruz.bakingapp.R;
-import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
 import com.sergiocruz.bakingapp.fragments.RecipeStepFragment;
 

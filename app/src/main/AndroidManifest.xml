@@ -31,7 +31,7 @@
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.sergiocruz.bakingapp.activities.MainActivity"/>
+                android:value=".activities.MainActivity"/>
         </activity>
 
         <activity
@@ -41,7 +41,7 @@
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.sergiocruz.bakingapp.activities.RecipeDetailActivity"/>
+                android:value=".activities.RecipeDetailActivity"/>
         </activity>
 
         <receiver android:name=".fragments.RecipeStepFragment$MediaReceiver">

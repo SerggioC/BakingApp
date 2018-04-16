@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -41,6 +42,7 @@ import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import com.sergiocruz.bakingapp.exoplayer.MediaSessionCallBacks;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
+import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import java.util.List;
@@ -49,7 +51,6 @@ import timber.log.Timber;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.NOTIFICATION_SERVICE;
-import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 
 public class RecipeStepFragment extends Fragment implements Player.EventListener {
     public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
@@ -82,13 +83,23 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         super.onAttach(context);
         mContext = getContext();
         setTransitions();
+    }
+
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
 
         // if the device is on landscape layout mode and it's not a tablet, enter fullscreen with player
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
-        isFullScreen = getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE && !isTwoPane;
-        if (isFullScreen) {
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE && !isTwoPane) {
             enterFullscreen();
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
 
     }
 
@@ -156,7 +167,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     private void enterFullscreen() {
         if (stepNumber <0) return;
-        
+
         isFullScreen = true; // unused after this
         Intent intent = new Intent(mContext, FullScreenActivity.class);
         startActivityForResult(intent, FULL_SCREEN_REQUEST_CODE);
@@ -379,10 +390,13 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     public void showPlaybackNotification(PlaybackStateCompat playbackState) {
-        if (isDetached) {
+        Recipe recipeValue = viewModel.getRecipe().getValue();
+        RecipeStep stepDescValue = viewModel.getRecipeStep().getValue();
+        if (isDetached || recipeValue == null || stepDescValue == null) {
             stopNotifications();
             return;
         }
+
         NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(mContext, CHANNEL_ID);
 
         int icon;
@@ -406,8 +420,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         PendingIntent contentPendingIntent = PendingIntent.getActivity(mContext, 0, new Intent(mContext, RecipeDetailActivity.class), 0);
 
         notificationCompatBuilder
-                .setContentTitle(viewModel.getRecipe().getValue().getRecipeName())
-                .setContentText(viewModel.getRecipeStep().getValue().getShortDesc())
+                .setContentTitle(recipeValue.getRecipeName())
+                .setContentText(stepDescValue.getShortDesc())
                 .setContentIntent(contentPendingIntent)
                 .setSmallIcon(R.drawable.ic_muffin)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

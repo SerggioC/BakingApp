@@ -88,4 +88,8 @@ public class ExoPlayerVideoHandler {
             isPlayerPlaying = true;
         }
     }
+
+    public boolean isPlayerPlaying() {
+        return isPlayerPlaying;
+    }
 }

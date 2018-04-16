@@ -112,7 +112,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
     @Override
     public void onSaveInstanceState(Bundle currentState) {
-        //currentState.putParcelable(ARG_RECIPE_ITEM, recipe);
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
     }
 

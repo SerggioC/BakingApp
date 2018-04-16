@@ -26,7 +26,7 @@ import android.widget.RemoteViews;
 
 import com.sergiocruz.bakingapp.R;
 
-public class PlantWidgetProvider extends AppWidgetProvider {
+public class RecipeWidgetProvider extends AppWidgetProvider {
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
@@ -34,13 +34,13 @@ public class PlantWidgetProvider extends AppWidgetProvider {
         // Get current width to decide on single plant vs garden grid view
         Bundle options = appWidgetManager.getAppWidgetOptions(appWidgetId);
         int width = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH);
-        RemoteViews rv;
+        RemoteViews remoteViews;
         if (width < 300) {
-            rv = getSinglePlantRemoteView(context, imgRes, plantId, showWater);
+            remoteViews = getSingleRecipeRemoteView(context, imgRes, plantId, showWater);
         } else {
-            rv = getGardenGridRemoteView(context);
+            remoteViews = getRecipesGridRemoteView(context);
         }
-        appWidgetManager.updateAppWidget(appWidgetId, rv);
+        appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
     }
 
     @Override
@@ -59,8 +59,7 @@ public class PlantWidgetProvider extends AppWidgetProvider {
      * @param showWater        Boolean to show/hide water drop button
      * @param appWidgetIds     Array of widget Ids to be updated
      */
-    public static void updatePlantWidgets(Context context, AppWidgetManager appWidgetManager,
-                                          int imgRes, long plantId, boolean showWater, int[] appWidgetIds) {
+    public static void updateRecipeWidgets(Context context, AppWidgetManager appWidgetManager, int imgRes, long plantId, boolean showWater, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, imgRes, plantId, showWater, appWidgetId);
         }
@@ -75,14 +74,14 @@ public class PlantWidgetProvider extends AppWidgetProvider {
      * @param showWater Boolean to either show/hide the water drop
      * @return The RemoteViews for the single plant mode widget
      */
-    private static RemoteViews getSinglePlantRemoteView(Context context, int imgRes, long plantId, boolean showWater) {
+    private static RemoteViews getSingleRecipeRemoteView(Context context, int imgRes, long plantId, boolean showWater) {
         // Set the click handler to open the DetailActivity for plant ID,
         // or the MainActivity if plant ID is invalid
 //        Intent intent;
 //        if (plantId == PlantContract.INVALID_PLANT_ID) {
 //            intent = new Intent(context, MainActivity.class);
 //        } else { // Set on click to open the corresponding detail activity
-//            Log.d(PlantWidgetProvider.class.getSimpleName(), "plantId=" + plantId);
+//            Log.d(RecipeWidgetProvider.class.getSimpleName(), "plantId=" + plantId);
 //            intent = new Intent(context, PlantDetailActivity.class);
 //            intent.putExtra(PlantDetailActivity.EXTRA_PLANT_ID, plantId);
 //        }
@@ -113,7 +112,7 @@ public class PlantWidgetProvider extends AppWidgetProvider {
      * @param context The context
      * @return The RemoteViews for the GridView mode widget
      */
-    private static RemoteViews getGardenGridRemoteView(Context context) {
+    private static RemoteViews getRecipesGridRemoteView(Context context) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget);
 //        // Set the GridWidgetService intent to act as the adapter for the GridView
 //        Intent intent = new Intent(context, GridWidgetService.class);

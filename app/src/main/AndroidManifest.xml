@@ -51,6 +51,7 @@
             </intent-filter>
         </receiver>
 
+        <!-- Widgets -->
         <receiver android:name=".ui.widgets.RecipeWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

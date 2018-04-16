@@ -171,7 +171,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         isFullScreen = true; // unused after this
         Intent intent = new Intent(mContext, FullScreenActivity.class);
         startActivityForResult(intent, FULL_SCREEN_REQUEST_CODE);
-        mContext.startActivity(intent);
     }
 
     /// Alternatively save the value on the viewModel.

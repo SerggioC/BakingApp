@@ -24,7 +24,7 @@ public class ActivityViewModel extends AndroidViewModel {
     public ActivityViewModel(@NonNull Application application) {
         super(application);
         this.dataRepository = new RecipesDataRepository(getApplication().getApplicationContext());
-        this.recipesList = dataRepository.getData();
+        this.recipesList = dataRepository.getData(false);
     }
 
     public static ActivityViewModel getInstance(Fragment fragment) {

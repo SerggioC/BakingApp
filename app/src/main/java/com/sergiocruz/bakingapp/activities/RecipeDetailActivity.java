@@ -21,6 +21,8 @@ import timber.log.Timber;
  */
 public class RecipeDetailActivity extends AppCompatActivity {
 
+    public static final String EXTRA_WIDGET_RECIPE = "com.sergiocruz.bakingapp.activities.RecipeDetailActivity.extra.widgetExtra";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

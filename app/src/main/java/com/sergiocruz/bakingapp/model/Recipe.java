@@ -52,6 +52,9 @@ public class Recipe implements Parcelable {
     @SerializedName("image")
     private String recipeImage;
 
+    @Expose(serialize = false, deserialize = false)
+    private Integer isFavorite;
+
     @Ignore // Room ignore -> GSON serialization
     public Recipe(Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage) {
         this.recipeId = recipeId;
@@ -62,12 +65,13 @@ public class Recipe implements Parcelable {
         this.recipeImage = recipeImage;
     }
 
-    public Recipe(Integer columnId, Integer recipeId, String recipeName, Integer servings, String recipeImage) {
+    public Recipe(Integer columnId, Integer recipeId, String recipeName, Integer servings, String recipeImage, Integer isFavorite) {
         this.columnId = columnId;
         this.recipeId = recipeId;
         this.recipeName = recipeName;
         this.servings = servings;
         this.recipeImage = recipeImage;
+        this.isFavorite = isFavorite;
     }
 
     protected Recipe(Parcel in) {
@@ -88,17 +92,30 @@ public class Recipe implements Parcelable {
         }
         servings = in.readByte() == 0x00 ? null : in.readInt();
         recipeImage = in.readString();
+        isFavorite = in.readByte() == 0x00 ? null : in.readInt();
     }
 
-    public Integer getColumnId() { return columnId; }
+    public Integer getIsFavorite() {
+        return isFavorite;
+    }
 
-    public void setColumnId(Integer columnId) { this.columnId = columnId; }
+    public void setIsFavorite(Integer isFavorite) {
+        this.isFavorite = isFavorite;
+    }
+
+    public Integer getColumnId() {
+        return columnId;
+    }
+
+    public void setColumnId(Integer columnId) {
+        this.columnId = columnId;
+    }
 
     public Integer getRecipeId() {
         return recipeId;
     }
 
-    public void setRecipeId(int recipeId) {
+    public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
     }
 
@@ -110,7 +127,9 @@ public class Recipe implements Parcelable {
         this.recipeName = recipeName;
     }
 
-    public List<Ingredient> getIngredientsList() { return ingredientsList; }
+    public List<Ingredient> getIngredientsList() {
+        return ingredientsList;
+    }
 
     public void setIngredientsList(List<Ingredient> ingredientsList) {
         this.ingredientsList = ingredientsList;
@@ -179,6 +198,12 @@ public class Recipe implements Parcelable {
             dest.writeInt(servings);
         }
         dest.writeString(recipeImage);
+        if (isFavorite == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(isFavorite);
+        }
     }
 
 }

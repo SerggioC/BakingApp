@@ -3,6 +3,7 @@ package com.sergiocruz.bakingapp.model;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
+import android.support.annotation.NonNull;
 
 import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
@@ -30,11 +31,7 @@ public class RecipesDataRepository {
     }
 
 
-    public LiveData<List<Recipe>> getData() {
-
-        // TODO LATER
-        Boolean getFavorites = false;
-
+    public LiveData<List<Recipe>> getData(Boolean getFavorites) {
 
         final MutableLiveData<List<Recipe>> data = new MutableLiveData<>();
 
@@ -44,22 +41,36 @@ public class RecipesDataRepository {
 
         ThreadExecutor threadExecutor = new ThreadExecutor();
 
-        if (hasInternet && !getFavorites) {
+        if (hasInternet) {
             threadExecutor.networkIO().execute(() -> getDataFromNetwork(data, threadExecutor));
-        } else if (!hasInternet || getFavorites) {
+        } else if (!hasInternet) {
             threadExecutor.diskIO().execute(() -> getDataFromDB(data));
+        } else if (getFavorites) {
+            threadExecutor.diskIO().execute(() -> getFavoritesFromDB(data));
         }
 
         return data;
+    }
 
+    private void getFavoritesFromDB(MutableLiveData<List<Recipe>> data) {
+        List<CompleteRecipe> completeRecipeList = recipeDatabase.recipesDao().getFavoriteCompleteRecipeList();
+
+        List<Recipe> recipeList = convertToRecipeList(completeRecipeList);
+
+        data.postValue(recipeList);
     }
 
     private void getDataFromDB(MutableLiveData<List<Recipe>> data) {
-        int number = recipeDatabase.recipesDao().getNumberOfRecipes();
-        Timber.i("number of elements in database = " + number);
 
         List<CompleteRecipe> completeRecipeList = recipeDatabase.recipesDao().getAllCompleteRecipes();
 
+        List<Recipe> recipeList = convertToRecipeList(completeRecipeList);
+
+        data.postValue(recipeList);
+    }
+
+    @NonNull
+    private List<Recipe> convertToRecipeList(List<CompleteRecipe> completeRecipeList) {
         List<Recipe> recipeList = new ArrayList<>(completeRecipeList.size());
         for (CompleteRecipe completeRecipe : completeRecipeList) {
             Recipe newRecipe = new Recipe(
@@ -71,7 +82,7 @@ public class RecipesDataRepository {
                     completeRecipe.getRecipe().getRecipeImage());
             recipeList.add(newRecipe);
         }
-        data.postValue(recipeList);
+        return recipeList;
     }
 
     private void getDataFromNetwork(MutableLiveData<List<Recipe>> data, ThreadExecutor threadExecutor) {

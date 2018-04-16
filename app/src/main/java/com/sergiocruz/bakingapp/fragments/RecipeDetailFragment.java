@@ -23,6 +23,7 @@ import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeStepAdapter;
+import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
@@ -167,4 +168,14 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             nestedScrollView.smoothScrollTo(0, screen.bottom / 2); // Scroll the view to to middle of the screen
         }
     }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        viewModel.setRecipeStep(null);
+        if (!isTwoPane) {
+            ExoPlayerVideoHandler.getInstance().releaseVideoPlayer();
+        }
+    }
+
 }

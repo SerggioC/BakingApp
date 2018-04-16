@@ -1,7 +1,5 @@
 package com.sergiocruz.bakingapp.activities;
 
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -10,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import com.sergiocruz.bakingapp.fragments.RecipeDetailFragment;
 import com.sergiocruz.bakingapp.fragments.RecipeStepFragment;
 
@@ -95,13 +94,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        int a = 1;
-        a = a + 1;
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-    }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == android.R.id.home) {
@@ -128,4 +120,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
             getSupportFragmentManager().popBackStack();
         }
     }
+
+
 }

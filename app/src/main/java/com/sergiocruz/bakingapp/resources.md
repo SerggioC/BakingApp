@@ -23,7 +23,11 @@ https://codelabs.developers.google.com/codelabs/build-app-with-arch-components/i
 Room foreign Keys>
 https://android.jlelse.eu/android-architecture-components-room-relationships-bf473510c14a
 
-
+ViewModel>
 https://stackoverflow.com/questions/44272914/sharing-data-between-fragments-using-new-architecture-component-viewmodel
 
+Icons>
 https://www.flaticon.com/free-icon/chef_481486#term=chef%20hat&page=1&position=1
+
+Exoplayer fullscreen based on the idea>
+https://medium.com/tall-programmer/fullscreen-functionality-with-android-exoplayer-5fddad45509f

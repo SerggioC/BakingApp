@@ -18,7 +18,6 @@ import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import static com.sergiocruz.bakingapp.fragments.RecipeStepFragment.FULL_SCREEN_PARENT_EXTRA;
 
 public class FullScreenActivity extends AppCompatActivity {
-    private boolean destroyVideo = true;
     private PlayerView exoPlayerView;
 
     @Override
@@ -27,7 +26,6 @@ public class FullScreenActivity extends AppCompatActivity {
         setWindowFlagsToFullScreen();
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         setContentView(R.layout.activity_full_screen);
-
     }
 
     @Override
@@ -41,8 +39,7 @@ public class FullScreenActivity extends AppCompatActivity {
         ExoPlayerVideoHandler.getInstance().goToForeground();
 
         findViewById(R.id.exo_fullscreen_button).setOnClickListener(v -> {
-            mExoFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_exit_white_24dp));
-            destroyVideo = false;
+            mExoFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_fullscreen_white_24dp));
 
             setDataToParent();
 
@@ -58,6 +55,7 @@ public class FullScreenActivity extends AppCompatActivity {
 
     @Override
     protected void onPause(){
+        ExoPlayerVideoHandler.getInstance().goToBackground();
         super.onPause();
     }
 

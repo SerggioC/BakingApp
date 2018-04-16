@@ -49,9 +49,8 @@ public class ExoPlayerVideoHandler {
         return mExoPlayer;
     }
 
-    public void loadVideo(Context context, Uri uri, Long position) {
+    public void loadVideo(Context context, Uri uri) {
         mExoPlayer.prepare(getMediaSource(context, uri));
-        if (position != null) mExoPlayer.seekTo(position);
         mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
         goToForeground();
     }
@@ -70,7 +69,6 @@ public class ExoPlayerVideoHandler {
 
     public void releaseVideoPlayer() {
         if (mExoPlayer != null) {
-            mExoPlayer.stop();
             mExoPlayer.release();
         }
         mExoPlayer = null;

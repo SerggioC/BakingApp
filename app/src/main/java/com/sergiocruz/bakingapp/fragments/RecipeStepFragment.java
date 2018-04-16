@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -66,38 +65,32 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private TextView stepDetailTV;
     private PlayerView exoPlayerView;
     private PlaybackStateCompat.Builder mPlaybackState;
-    private static NotificationManager mNotificationManager;
+    private NotificationManager mNotificationManager;
     private Context mContext;
     private Boolean isFullScreen;
     private ImageView mExoFullScreenIcon;
     private SimpleExoPlayer mExoPlayer;
     private boolean isParentFullScreen = false;
+    private boolean isTwoPane;
+    private boolean isDetached = false;
 
     public RecipeStepFragment() {
     }
 
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         mContext = getContext();
         setTransitions();
 
         // if the device is on landscape layout mode and it's not a tablet, enter fullscreen with player
-        isFullScreen = getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE
-                && !getResources().getBoolean(R.bool.is_two_pane);
-
+        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
+        isFullScreen = getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE && !isTwoPane;
         if (isFullScreen) {
             enterFullscreen();
         }
 
     }
-
 
     /**
      * Called to have the fragment instantiate its user interface view.
@@ -127,8 +120,10 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         if (stepNumber == null) stepNumber = -1;
         stepsList = viewModel.getRecipe().getValue().getStepsList();
         viewModel.getRecipeStep().observe(this, recipeStep -> {
+            if (recipeStep == null) return;
             stepNumber = viewModel.getRecipeStepNumber().getValue();
             loadVideo(Uri.parse(recipeStep.getVideoUrl()));
+
             updateFragmentUI(recipeStep);
         });
 
@@ -144,7 +139,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         super.onResume();
         if (isParentFullScreen) {
             ExoPlayerVideoHandler.getInstance().initExoPlayer(mContext, exoPlayerView, this);
-            ExoPlayerVideoHandler.getInstance().goToForeground();
+            //ExoPlayerVideoHandler.getInstance().goToForeground();
             mExoPlayer.setPlayWhenReady(true);
         }
         Timber.d("IsParentFullScreen= " + isParentFullScreen);
@@ -213,21 +208,13 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     private void loadVideo(Uri uri) {
         Timber.i("Video Uri = " + uri);
-        ExoPlayerVideoHandler.getInstance().loadVideo(mContext, uri, null);
+        ExoPlayerVideoHandler.getInstance().loadVideo(mContext, uri);
     }
 
     @Override
     public void onPause(){
         super.onPause();
         ExoPlayerVideoHandler.getInstance().goToBackground();
-    }
-
-    @Override
-    public void onDestroyView(){
-        super.onDestroyView();
-        ExoPlayerVideoHandler.getInstance().releaseVideoPlayer();
-        mMediaSession.setActive(false);
-        mNotificationManager.cancel(NOTIFICATION_TAG, NOTIFICATION_ID);
     }
 
     private void initializeMediaSession() {
@@ -390,6 +377,10 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     public void showPlaybackNotification(PlaybackStateCompat playbackState) {
+        if (isDetached) {
+            stopNotifications();
+            return;
+        }
         NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(mContext, CHANNEL_ID);
 
         int icon;
@@ -430,31 +421,11 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     }
 
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        // if phone is on layout mode enter fullscreen with player
-        if (getResources().getConfiguration().orientation == ORIENTATION_LANDSCAPE
-                && !getResources().getBoolean(R.bool.is_two_pane)) {
-            Intent intent = new Intent(mContext, FullScreenActivity.class);
-            startActivity(intent);
-            Timber.d("Configuration change");
-        }
-    }
-
     private void setTransitions() {
         this.setSharedElementEnterTransition(new DetailsTransition());
         this.setEnterTransition(new DetailsTransition());
         this.setExitTransition(new DetailsTransition());
         this.setSharedElementReturnTransition(new DetailsTransition());
-    }
-
-    public static class MediaReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            MediaButtonReceiver.handleIntent(mMediaSession, intent);
-            Timber.d("Intent = " + intent.getAction());
-        }
     }
 
     public class DetailsTransition extends TransitionSet {
@@ -466,5 +437,35 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
                     .addTransition(new ChangeClipBounds());
         }
     }
+
+    public static class MediaReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            MediaButtonReceiver.handleIntent(mMediaSession, intent);
+            Timber.d("Intent = " + intent.getAction());
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        isDetached = true;
+
+        if (isTwoPane) {
+            if (mExoPlayer != null) {
+                mExoPlayer.stop();
+                mExoPlayer.release();
+            }
+            mExoPlayer = null;
+            ExoPlayerVideoHandler.getInstance().releaseVideoPlayer();
+        }
+
+    }
+
+    private void stopNotifications() {
+        if (mMediaSession != null) mMediaSession.setActive(false);
+        if (mNotificationManager != null) mNotificationManager.cancel(NOTIFICATION_TAG, NOTIFICATION_ID);
+    }
+
 
 }

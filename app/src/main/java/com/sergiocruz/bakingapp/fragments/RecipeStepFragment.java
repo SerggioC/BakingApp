@@ -126,7 +126,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
 
-        viewModel = ActivityViewModel.getInstance(this);
+        // TODO favorites
+        viewModel = ActivityViewModel.getInstance(this, false);
         stepNumber = viewModel.getRecipeStepNumber().getValue();
         if (stepNumber == null) stepNumber = -1;
         stepsList = viewModel.getRecipe().getValue().getStepsList();

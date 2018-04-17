@@ -55,7 +55,7 @@ public class Recipe implements Parcelable {
     @Expose(serialize = false, deserialize = false)
     private Integer isFavorite;
 
-    @Ignore // Room ignore -> GSON serialization
+    @Ignore // Room ignore -> GSON serialization network response
     public Recipe(Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage) {
         this.recipeId = recipeId;
         this.recipeName = recipeName;
@@ -65,6 +65,19 @@ public class Recipe implements Parcelable {
         this.recipeImage = recipeImage;
     }
 
+    @Ignore // Room ignore -> GSON ignores (+columnId, +isFavorite) used in app
+    public Recipe(Integer columnId, Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage, Integer isFavorite) {
+        this.columnId = columnId;
+        this.recipeId = recipeId;
+        this.recipeName = recipeName;
+        this.ingredientsList = ingredientsList;
+        this.stepsList = stepsList;
+        this.servings = servings;
+        this.recipeImage = recipeImage;
+        this.isFavorite = isFavorite;
+    }
+
+    // Used by Room
     public Recipe(Integer columnId, Integer recipeId, String recipeName, Integer servings, String recipeImage, Integer isFavorite) {
         this.columnId = columnId;
         this.recipeId = recipeId;

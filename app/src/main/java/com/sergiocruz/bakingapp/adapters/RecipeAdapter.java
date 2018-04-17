@@ -106,7 +106,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                     recipe.setIsFavorite(1);
                     recipesList.set(position, recipe);
                 } else {
-                    if (isFavorite == 1) {
+                    if (isFavorite == 1) { // keep active
                         shineButton.setChecked(true, true);
                     } else if (isFavorite == 0) {
                         recipe.setIsFavorite(1);

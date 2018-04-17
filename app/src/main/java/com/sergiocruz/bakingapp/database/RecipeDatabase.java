@@ -20,7 +20,8 @@ public abstract class RecipeDatabase extends RoomDatabase {
         if (DATABASE_INSTANCE == null) {
             DATABASE_INSTANCE = Room
                     .databaseBuilder(context.getApplicationContext(), RecipeDatabase.class, RECIPE_DATABASE_NAME)
-                    .addMigrations(MIGRATION_1_2)
+                    //.fallbackToDestructiveMigration()
+                    //.addMigrations(MIGRATION_1_2)
                     .build();
         }
         return DATABASE_INSTANCE;
@@ -30,10 +31,9 @@ public abstract class RecipeDatabase extends RoomDatabase {
     static final Migration MIGRATION_1_2 = new Migration(1, 2) {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
-            database.execSQL("ALTER TABLE Recipe ADD COLUMN isFavorite INTEGER");
+            //database.execSQL("ALTER TABLE Recipe ADD COLUMN isFavorite INTEGER");
         }
     };
 
     public abstract RecipesDao recipesDao();
-    public abstract UpdateRecipesDao updateRecipesDao();
 }

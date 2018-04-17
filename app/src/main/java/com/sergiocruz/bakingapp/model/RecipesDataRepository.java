@@ -42,10 +42,8 @@ public class RecipesDataRepository {
         ThreadExecutor threadExecutor = new ThreadExecutor();
 
         if (hasInternet) {
-            threadExecutor.networkIO().execute(() -> getDataFromNetwork(data, threadExecutor));
-        } else if (!hasInternet) {
-            threadExecutor.diskIO().execute(() -> getDataFromDB(data));
-        } else if (getFavorites) {
+            threadExecutor.networkIO().execute(() -> getDataFromNetwork(data));
+        } else if (!hasInternet || getFavorites) {
             threadExecutor.diskIO().execute(() -> getFavoritesFromDB(data));
         }
 
@@ -54,18 +52,7 @@ public class RecipesDataRepository {
 
     private void getFavoritesFromDB(MutableLiveData<List<Recipe>> data) {
         List<CompleteRecipe> completeRecipeList = recipeDatabase.recipesDao().getFavoriteCompleteRecipeList();
-
         List<Recipe> recipeList = convertToRecipeList(completeRecipeList);
-
-        data.postValue(recipeList);
-    }
-
-    private void getDataFromDB(MutableLiveData<List<Recipe>> data) {
-
-        List<CompleteRecipe> completeRecipeList = recipeDatabase.recipesDao().getAllCompleteRecipes();
-
-        List<Recipe> recipeList = convertToRecipeList(completeRecipeList);
-
         data.postValue(recipeList);
     }
 
@@ -74,18 +61,21 @@ public class RecipesDataRepository {
         List<Recipe> recipeList = new ArrayList<>(completeRecipeList.size());
         for (CompleteRecipe completeRecipe : completeRecipeList) {
             Recipe newRecipe = new Recipe(
+                    completeRecipe.getRecipe().getColumnId(),
                     completeRecipe.getRecipe().getRecipeId(),
                     completeRecipe.getRecipe().getRecipeName(),
                     completeRecipe.getIngredientList(),
                     completeRecipe.getRecipeStepList(),
                     completeRecipe.getRecipe().getServings(),
-                    completeRecipe.getRecipe().getRecipeImage());
+                    completeRecipe.getRecipe().getRecipeImage(),
+                    completeRecipe.getRecipe().getIsFavorite()
+            );
             recipeList.add(newRecipe);
         }
         return recipeList;
     }
 
-    private void getDataFromNetwork(MutableLiveData<List<Recipe>> data, ThreadExecutor threadExecutor) {
+    private void getDataFromNetwork(MutableLiveData<List<Recipe>> data) {
         webservice.getApiController().getRecipes("baking.json").enqueue(new Callback<List<Recipe>>() {
 
             @Override
@@ -93,15 +83,6 @@ public class RecipesDataRepository {
                 if (response.isSuccessful()) {
                     List<Recipe> recipesList = response.body();
                     data.setValue(recipesList);
-
-                    threadExecutor.diskIO().execute(() -> {
-                        Integer numberOfRecipes = recipeDatabase.recipesDao().getNumberOfRecipes();
-                        if (numberOfRecipes == null || numberOfRecipes == 0) {
-                            addRecipeListToDB(recipesList);
-                        }
-                    });
-
-
                 } else {
                     data.setValue(null);
                     Timber.w("Wrong response on Api Call= " + call.toString() + " " + response.errorBody());
@@ -117,12 +98,10 @@ public class RecipesDataRepository {
     }
 
     private void addRecipeListToDB(List<Recipe> recipeList) {
-
         RecipesDao recipesDao = recipeDatabase.recipesDao();
 
         int size = recipeList.size();
         for (int i = 0; i < size; i++) {
-
             Recipe recipe = recipeList.get(i);
             recipesDao.addRecipe(recipe);
 

@@ -64,7 +64,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         Context context = getContext();
 
-        viewModel = ActivityViewModel.getInstance(this);
+        viewModel = ActivityViewModel.getInstance(this, false);
         recipe = viewModel.getRecipe().getValue();
 
         TextView recipeNameTextView = rootView.findViewById(R.id.recipe_name);

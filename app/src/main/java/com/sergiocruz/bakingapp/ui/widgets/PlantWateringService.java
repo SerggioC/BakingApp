@@ -6,8 +6,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
-import com.sergiocruz.bakingapp.database.RecipeDatabase;
-
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
  * a service on a separate handler thread.
@@ -69,8 +67,8 @@ public class PlantWateringService extends IntentService {
      */
     private void handleActionUpdatePlantWidgets() {
 
-        RecipeDatabase database = RecipeDatabase.getDatabase(this);
-        database.recipesDao().getFavoriteCompleteRecipeList();
+/*        RecipeDatabase database = RecipeDatabase.getDatabase(this);
+        database.recipesDao().getFavoriteCompleteRecipeList();*/
 
 
 

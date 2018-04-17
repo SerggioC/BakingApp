@@ -70,9 +70,12 @@ public interface RecipesDao {
     void addStep(RecipeStep recipeStep);
 
     @Insert(onConflict = REPLACE)
-    void addRecipe(List<Recipe> recipeList);
+    void addRecipeList(List<Recipe> recipeList);
 
+    @Query("DELETE FROM Recipe WHERE columnId = :columnId")
+    void deleteRecipeByColumnId(Integer columnId);
 
     @Delete
     void deleteRecipe(Recipe recipe);
+
 }

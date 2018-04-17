@@ -23,14 +23,17 @@ import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
+import com.sergiocruz.bakingapp.database.RecipesDao;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
+import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
+import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import java.util.List;
 
 import timber.log.Timber;
 
-public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener{
+public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener {
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
     private static final int GRID_SPAN_COUNT = 2;
     private Context mContext;
@@ -61,8 +64,8 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         adapter = new RecipeAdapter(this, this, this);
         setupRecyclerView(recyclerView, adapter);
 
-        // Start the ViewModel
-        viewModel = ActivityViewModel.getInstance(this);
+        // Start the ViewModel //TODO favorites
+        viewModel = ActivityViewModel.getInstance(this, false);
         viewModel.getAllRecipes().observe(RecipeListFragment.this, new Observer<List<Recipe>>() {
             /**
              * Called when the data is changed.
@@ -115,8 +118,31 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
     public void onFavoriteClicked(Recipe recipe, int position) {
         Integer isFavorite = recipe.getIsFavorite();
         if (isFavorite == null || isFavorite == 0) { // if not favorite make it favorite
-            recipe.setIsFavorite(1);
-            updateDataBaseOnBackground(recipe);
+
+            new ThreadExecutor().diskIO().execute(() -> {
+
+                RecipesDao recipesDao = RecipeDatabase.getDatabase(mContext).recipesDao();
+
+                recipe.setIsFavorite(1);
+                recipesDao.addRecipe(recipe);
+
+                List<Ingredient> ingredientList = recipe.getIngredientsList();
+                Integer columnId = recipesDao.getColumnIdFromRecipeId(recipe.getRecipeId()); // ???
+                for (int j = 0; j < ingredientList.size(); j++) {
+                    Ingredient ingredient = ingredientList.get(j);
+                    ingredient.setRecipeId(columnId);
+                    recipesDao.addIngredient(ingredient);
+                }
+
+                List<RecipeStep> stepsList = recipe.getStepsList();
+                for (int k = 0; k < stepsList.size(); k++) {
+                    RecipeStep recipeStep = stepsList.get(k);
+                    recipeStep.setRecipeId(columnId);
+                    recipesDao.addStep(recipeStep);
+                }
+            });
+
+
         } else {
             Toast.makeText(mContext, "Already in Favorites", Toast.LENGTH_LONG).show();
         }
@@ -127,23 +153,13 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         Integer isFavorite = recipe.getIsFavorite();
         if (isFavorite != null) { // if it's a favorite remove it from favorites
             if (isFavorite == 1) {
-                recipe.setIsFavorite(0);
-                updateDataBaseOnBackground(recipe);
+                new ThreadExecutor().diskIO().execute(() -> {
+                    RecipeDatabase.getDatabase(mContext).recipesDao().deleteRecipeByColumnId(recipe.getColumnId());
+                });
             }
         } else {
             Toast.makeText(mContext, "Click to add to favorites", Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void updateDataBaseOnBackground(Recipe recipe) {
-        new ThreadExecutor().diskIO().execute(() -> {
-            //RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(recipe.getIsFavorite(), recipe.getColumnId());
-            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 1);
-            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 2);
-            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 3);
-            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 4);
-
-        });
     }
 
 }

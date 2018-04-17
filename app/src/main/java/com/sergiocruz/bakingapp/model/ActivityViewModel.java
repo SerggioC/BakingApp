@@ -20,13 +20,16 @@ public class ActivityViewModel extends AndroidViewModel {
     private static MutableLiveData<RecipeStep> recipeStep;
     private static MutableLiveData<Integer> recipeStepNumber;
 
+    private static Boolean thisGetFavorites;
+
     public ActivityViewModel(@NonNull Application application) {
         super(application);
         this.dataRepository = new RecipesDataRepository(getApplication().getApplicationContext());
-        this.recipesList = dataRepository.getData(false);
+        this.recipesList = dataRepository.getData(thisGetFavorites);
     }
 
-    public static ActivityViewModel getInstance(Fragment fragment) {
+    public static ActivityViewModel getInstance(Fragment fragment, Boolean getFavorites) {
+        thisGetFavorites = getFavorites;
         if (INSTANCE == null) {
             INSTANCE = ViewModelProviders.of(fragment).get(ActivityViewModel.class);
             initMutableLiveData();
@@ -34,7 +37,8 @@ public class ActivityViewModel extends AndroidViewModel {
         return INSTANCE;
     }
 
-    public static ActivityViewModel getInstance(AppCompatActivity activity) {
+    public static ActivityViewModel getInstance(AppCompatActivity activity, Boolean getFavorites) {
+        thisGetFavorites = getFavorites;
         if (INSTANCE == null) {
             INSTANCE = ViewModelProviders.of(activity).get(ActivityViewModel.class);
             initMutableLiveData();

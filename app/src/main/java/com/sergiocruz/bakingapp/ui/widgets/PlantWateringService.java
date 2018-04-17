@@ -1,6 +1,8 @@
 package com.sergiocruz.bakingapp.ui.widgets;
 
 import android.app.IntentService;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 
@@ -11,8 +13,6 @@ import com.sergiocruz.bakingapp.database.RecipeDatabase;
  * a service on a separate handler thread.
  */
 public class PlantWateringService extends IntentService {
-
-
     public static final String ACTION_UPDATE_PLANT_WIDGETS = "com.example.android.mygarden.action.update_plant_widgets";
     public static final String EXTRA_PLANT_ID = "com.example.android.mygarden.extra.PLANT_ID";
     ;
@@ -25,7 +25,6 @@ public class PlantWateringService extends IntentService {
     /**
      * Starts this service to perform UpdatePlantWidgets action with the given parameters. If
      * the service is already performing a task this action will be queued.
-     *
      * @see IntentService
      */
     public static void startActionUpdatePlantWidgets(Context context) {
@@ -34,9 +33,6 @@ public class PlantWateringService extends IntentService {
         context.startService(intent);
     }
 
-    /**
-     * @param intent
-     */
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
@@ -107,10 +103,13 @@ public class PlantWateringService extends IntentService {
 //                    (timeNow - wateredAt) < PlantUtils.MAX_AGE_WITHOUT_WATER;
 //            imgRes = PlantUtils.getPlantImageRes(this, timeNow - createdAt, timeNow - wateredAt, plantType);
 //        }
-//        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-//        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this, RecipeWidgetProvider.class));
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        int[] appWidgetIds = appWidgetManager.getAppWidgetIds(new ComponentName(this, RecipeWidgetProvider.class));
+//
 //        //Trigger data update to handle the GridView widgets and force a data refresh
 //        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widget_grid_view);
+//
 //        //Now update all widgets
 //        RecipeWidgetProvider.updateRecipeWidgets(this, appWidgetManager, imgRes, plantId, canWater, appWidgetIds);
     }

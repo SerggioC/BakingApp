@@ -20,14 +20,36 @@
         android:orientation="vertical"
         android:padding="@dimen/default_gap">
 
+        <com.sackcentury.shinebuttonlib.ShineButton
+            android:id="@+id/favorite_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerInParent="true"
+            android:src="@android:color/darker_gray"
+            app:allow_random_color="true"
+            app:big_shine_color="@color/brown500"
+            app:btn_color="@color/pinke"
+            app:btn_fill_color="@color/pink_shine"
+            app:click_animation_duration="200"
+            app:enable_flashing="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shine_animation_duration="1000"
+            app:shine_count="10"
+            app:shine_distance_multiple="1.5"
+            app:shine_turn_angle="10"
+            app:siShape="@raw/heart"
+            app:small_shine_color="@color/pink_shine"
+            app:small_shine_offset_angle="20"/>
+
         <TextView
             android:id="@+id/recipe_name"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textColor="@color/brown700"
             android:textSize="30sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/favorite_button"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="@tools:sample/full_names"/>

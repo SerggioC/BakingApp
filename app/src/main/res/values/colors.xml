@@ -8,4 +8,7 @@
     <color name="green400">#66bb6a</color>
     <color name="transparent">#00000000</color>
     <color name="step_bg">#ebecebe3</color>
+    <color name="pinke">#e1bee7</color>
+    <color name="pink_shine">#e040fb</color>
+
 </resources>

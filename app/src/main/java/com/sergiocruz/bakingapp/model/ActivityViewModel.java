@@ -17,7 +17,6 @@ public class ActivityViewModel extends AndroidViewModel {
     private LiveData<List<Recipe>> recipesList;
 
     private static MutableLiveData<Recipe> recipe;
-    private static MutableLiveData<List<RecipeStep>> recipeStepList;
     private static MutableLiveData<RecipeStep> recipeStep;
     private static MutableLiveData<Integer> recipeStepNumber;
 
@@ -45,7 +44,6 @@ public class ActivityViewModel extends AndroidViewModel {
 
     public static void initMutableLiveData() {
         if (recipe == null) recipe = new MutableLiveData<>();
-        if (recipeStepList == null) recipeStepList = new MutableLiveData<>();
         if (recipeStep == null) recipeStep = new MutableLiveData<>();
         if (recipeStepNumber == null) recipeStepNumber = new MutableLiveData<>();
     }
@@ -54,17 +52,11 @@ public class ActivityViewModel extends AndroidViewModel {
         return recipesList;
     }
 
-    public void setRecipeStepList(List<RecipeStep> recipeStepList) {
-        this.recipeStepList.setValue(recipeStepList);
-    }
-
-    public LiveData<List<RecipeStep>> getRecipeStepList() {
-        return recipeStepList;
-    }
 
     public void setRecipe(Recipe recipe) {
         this.recipe.setValue(recipe);
     }
+
     public LiveData<Recipe> getRecipe() {
         return recipe;
     }

@@ -16,10 +16,13 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
+import com.sergiocruz.bakingapp.database.RecipeDatabase;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 
@@ -27,7 +30,7 @@ import java.util.List;
 
 import timber.log.Timber;
 
-public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener {
+public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener{
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
     private static final int GRID_SPAN_COUNT = 2;
     private Context mContext;
@@ -55,7 +58,7 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
 
         recyclerView = rootView.findViewById(R.id.recipe_list_recyclerview);
 
-        adapter = new RecipeAdapter(this);
+        adapter = new RecipeAdapter(this, this, this);
         setupRecyclerView(recyclerView, adapter);
 
         // Start the ViewModel
@@ -108,5 +111,39 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         Timber.d(recipe.getRecipeName());
     }
 
+    @Override
+    public void onFavoriteClicked(Recipe recipe, int position) {
+        Integer isFavorite = recipe.getIsFavorite();
+        if (isFavorite == null || isFavorite == 0) { // if not favorite make it favorite
+            recipe.setIsFavorite(1);
+            updateDataBaseOnBackground(recipe);
+        } else {
+            Toast.makeText(mContext, "Already in Favorites", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onFavoriteLongClicked(Recipe recipe, int position) {
+        Integer isFavorite = recipe.getIsFavorite();
+        if (isFavorite != null) { // if it's a favorite remove it from favorites
+            if (isFavorite == 1) {
+                recipe.setIsFavorite(0);
+                updateDataBaseOnBackground(recipe);
+            }
+        } else {
+            Toast.makeText(mContext, "Click to add to favorites", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void updateDataBaseOnBackground(Recipe recipe) {
+        new ThreadExecutor().diskIO().execute(() -> {
+            //RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(recipe.getIsFavorite(), recipe.getColumnId());
+            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 1);
+            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 2);
+            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 3);
+            RecipeDatabase.getDatabase(mContext).updateRecipesDao().updateRecipe(10001, 4);
+
+        });
+    }
 
 }

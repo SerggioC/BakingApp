@@ -5,7 +5,6 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Transaction;
-import android.arch.persistence.room.Update;
 
 import com.sergiocruz.bakingapp.model.CompleteRecipe;
 import com.sergiocruz.bakingapp.model.Ingredient;
@@ -49,8 +48,10 @@ public interface RecipesDao {
     @Query("SELECT * from Recipe where isFavorite = 1")
     List<CompleteRecipe> getFavoriteCompleteRecipeList();
 
-    @Update(onConflict = REPLACE)
-    void updateRecipe(Recipe recipe);
+    //@Update(onConflict = OnConflictStrategy.REPLACE)
+    @Transaction
+    @Query("UPDATE Recipe SET isFavorite = :isFavorite WHERE columnId = :columnId")
+    void updateRecipe(Integer isFavorite, Integer columnId);
 
 
     @Insert(onConflict = REPLACE)

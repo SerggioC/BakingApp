@@ -119,15 +119,17 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         Integer isFavorite = recipe.getIsFavorite();
         if (isFavorite == null || isFavorite == 0) { // if not favorite make it favorite
 
+            // Save Favorite recipe to database
             new ThreadExecutor().diskIO().execute(() -> {
-
                 RecipesDao recipesDao = RecipeDatabase.getDatabase(mContext).recipesDao();
 
                 recipe.setIsFavorite(1);
+                long timeStamp = System.currentTimeMillis();
+                recipe.setTimeStamp(timeStamp);
                 recipesDao.addRecipe(recipe);
 
                 List<Ingredient> ingredientList = recipe.getIngredientsList();
-                Integer columnId = recipesDao.getColumnIdFromRecipeId(recipe.getRecipeId()); // ???
+                Integer columnId = recipesDao.getColumnIdFromTimeStamp(timeStamp);
                 for (int j = 0; j < ingredientList.size(); j++) {
                     Ingredient ingredient = ingredientList.get(j);
                     ingredient.setRecipeId(columnId);

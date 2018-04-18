@@ -78,7 +78,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         recyclerView = rootView.findViewById(R.id.recipe_steps_recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
-        recyclerView.setHasFixedSize(true);
+        recyclerView.setHasFixedSize(false);
         recyclerView.setAdapter(adapter);
 
         if (savedInstanceState != null) {
@@ -93,10 +93,12 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             Timber.d("Clicked Recipe number = " + stepNumber);
         });
         nestedScrollView = rootView.findViewById(R.id.nested_scroll_view);
+        nestedScrollView.setFocusableInTouchMode(true);
+        nestedScrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 
         return rootView;
     }
-
+//                if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);

@@ -27,10 +27,12 @@ import android.text.TextUtils;
 import android.widget.RemoteViews;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
+import com.sergiocruz.bakingapp.database.RecipeDatabase;
+import com.sergiocruz.bakingapp.model.CompleteRecipe;
 import com.sergiocruz.bakingapp.model.Ingredient;
-import com.sergiocruz.bakingapp.model.Recipe;
 
 import java.util.List;
 
@@ -40,7 +42,18 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // Start the intent service update widget action,
         // the service takes care of updating the widgets UI
-        PlantWateringService.startActionUpdatePlantWidgets(context);
+
+        RecipeDatabase db = RecipeDatabase.getDatabase(context);
+
+        new ThreadExecutor().diskIO().execute(() -> {
+            List<CompleteRecipe> completeRecipesList = db.recipesDao().getFavoriteCompleteRecipeList();
+            CompleteRecipe recipe = completeRecipesList.get(0);
+
+            new ThreadExecutor().mainThread().execute(() -> updateRecipeWidgets(context, appWidgetManager, recipe, appWidgetIds));
+        });
+
+
+        //PlantWateringService.startActionUpdatePlantWidgets(context);
     }
 
     @Override
@@ -64,7 +77,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         // Perform any action when the last AppWidget instance for this provider is deleted
     }
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, Recipe recipe, int appWidgetId) {
+    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, CompleteRecipe recipe, int appWidgetId) {
         RemoteViews remoteViews = getRecipeRemoteViews(context, recipe);
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
     }
@@ -72,17 +85,17 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
     /**
      * Updates all widget instances given the widget Ids and display information
      */
-    public static void updateRecipeWidgets(Context context, AppWidgetManager appWidgetManager, Recipe recipe, int[] appWidgetIds) {
+    public static void updateRecipeWidgets(Context context, AppWidgetManager appWidgetManager, CompleteRecipe recipe, int[] appWidgetIds) {
         for (int appWidgetId : appWidgetIds) {
             updateAppWidget(context, appWidgetManager, recipe, appWidgetId);
         }
     }
 
     /**
-     * Creates and returns the RemoteViews to be displayed in the single plant mode widget
+     * Creates and returns the RemoteViews to be displayed in the single recipe mode widget
      */
-    private static RemoteViews getRecipeRemoteViews(Context context, Recipe recipe) {
-        // Set the click handler to open the DetailActivity for plant ID,
+    private static RemoteViews getRecipeRemoteViews(Context context, CompleteRecipe recipe) {
+        // Set the click handler to open the DetailActivity for the recipe ID,
         // or the MainActivity if plant ID is invalid
         Intent intent;
         if (recipe == null) {
@@ -90,7 +103,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         } else {
             // Set on click to open the corresponding detail activity
             intent = new Intent(context, RecipeDetailActivity.class);
-            intent.putExtra(RecipeDetailActivity.EXTRA_WIDGET_RECIPE, recipe);
+            intent.putExtra(RecipeDetailActivity.EXTRA_WIDGET_RECIPE, recipe.getRecipe().getColumnId());
         }
 
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -99,14 +112,14 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget);
 
         // Update Recipe image, recipe name and ingredients
-        String recipeImageUrl = recipe != null ? recipe.getRecipeImage() : null;
+        String recipeImageUrl = recipe != null ? recipe.getRecipe().getRecipeImage() : null;
         if (TextUtils.isEmpty(recipeImageUrl)) {
             views.setImageViewResource(R.id.widget_image_background, R.mipmap.ic_launcher);
         } else {
             views.setImageViewUri(R.id.widget_image_background, Uri.parse(recipeImageUrl));
         }
-        views.setTextViewText(R.id.widget_recipe_name, recipe != null ? recipe.getRecipeName() : context.getString(R.string.app_name));
-        views.setTextViewText(R.id.widget_recipe_ingredients, getFormatedIngredientList(recipe != null ? recipe.getIngredientsList() : null));
+        views.setTextViewText(R.id.widget_recipe_name, recipe != null ? recipe.getRecipe().getRecipeName() : context.getString(R.string.app_name));
+        views.setTextViewText(R.id.widget_recipe_ingredients, getFormatedIngredientList(recipe != null ? recipe.getIngredientList() : null));
 
         // Widgets allow click handlers to only launch pending intents
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);

@@ -55,6 +55,9 @@ public class Recipe implements Parcelable {
     @Expose(serialize = false, deserialize = false)
     private Integer isFavorite;
 
+    @Expose(serialize = false, deserialize = false)
+    private Long timeStamp;
+
     @Ignore // Room ignore -> GSON serialization network response
     public Recipe(Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage) {
         this.recipeId = recipeId;
@@ -65,8 +68,8 @@ public class Recipe implements Parcelable {
         this.recipeImage = recipeImage;
     }
 
-    @Ignore // Room ignore -> GSON ignores (+columnId, +isFavorite) used in app
-    public Recipe(Integer columnId, Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage, Integer isFavorite) {
+    @Ignore // Room ignore -> GSON ignores (+columnId, +isFavorite, +timeStamp) used in app
+    public Recipe(Integer columnId, Integer recipeId, String recipeName, List<Ingredient> ingredientsList, List<RecipeStep> stepsList, Integer servings, String recipeImage, Integer isFavorite, Long timeStamp) {
         this.columnId = columnId;
         this.recipeId = recipeId;
         this.recipeName = recipeName;
@@ -75,16 +78,18 @@ public class Recipe implements Parcelable {
         this.servings = servings;
         this.recipeImage = recipeImage;
         this.isFavorite = isFavorite;
+        this.timeStamp = timeStamp;
     }
 
     // Used by Room
-    public Recipe(Integer columnId, Integer recipeId, String recipeName, Integer servings, String recipeImage, Integer isFavorite) {
+    public Recipe(Integer columnId, Integer recipeId, String recipeName, Integer servings, String recipeImage, Integer isFavorite, Long timeStamp) {
         this.columnId = columnId;
         this.recipeId = recipeId;
         this.recipeName = recipeName;
         this.servings = servings;
         this.recipeImage = recipeImage;
         this.isFavorite = isFavorite;
+        this.timeStamp = timeStamp;
     }
 
     protected Recipe(Parcel in) {
@@ -106,6 +111,15 @@ public class Recipe implements Parcelable {
         servings = in.readByte() == 0x00 ? null : in.readInt();
         recipeImage = in.readString();
         isFavorite = in.readByte() == 0x00 ? null : in.readInt();
+        timeStamp = in.readByte() == 0x00 ? null : in.readLong();
+    }
+
+    public Long getTimeStamp() {
+        return timeStamp;
+    }
+
+    public void setTimeStamp(Long timeStamp) {
+        this.timeStamp = timeStamp;
     }
 
     public Integer getIsFavorite() {
@@ -216,6 +230,12 @@ public class Recipe implements Parcelable {
         } else {
             dest.writeByte((byte) (0x01));
             dest.writeInt(isFavorite);
+        }
+        if (timeStamp == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeLong(timeStamp);
         }
     }
 

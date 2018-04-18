@@ -5,6 +5,7 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
 import android.arch.persistence.room.Transaction;
+import android.arch.persistence.room.TypeConverters;
 
 import com.sergiocruz.bakingapp.model.CompleteRecipe;
 import com.sergiocruz.bakingapp.model.Ingredient;
@@ -41,12 +42,18 @@ public interface RecipesDao {
     @Query("SELECT * from Recipe")
     List<CompleteRecipe> getAllCompleteRecipes();
 
-    @Query("SELECT columnId FROM Recipe WHERE recipeId = :recipeId")
-    Integer getColumnIdFromRecipeId(Integer recipeId);
+    @Query("SELECT columnId FROM Recipe WHERE timeStamp = :timeStamp")
+    Integer getColumnIdFromTimeStamp(long timeStamp);
+
 
     @Transaction
-    @Query("SELECT * from Recipe where isFavorite = 1")
+    @Query("SELECT * from Recipe where isFavorite = 1 ORDER BY timeStamp DESC")
     List<CompleteRecipe> getFavoriteCompleteRecipeList();
+
+    @TypeConverters(RecipeTypeConverter.class)
+    @Transaction
+    @Query("SELECT * from Recipe where isFavorite = 1 ORDER BY timeStamp DESC")
+    List<CompleteRecipe> getFavoriteRecipeListTypeConverted();
 
     //@Update(onConflict = OnConflictStrategy.REPLACE)
     @Transaction

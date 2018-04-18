@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 
 import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
-import com.sergiocruz.bakingapp.database.RecipesDao;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.ArrayList;
@@ -68,7 +67,8 @@ public class RecipesDataRepository {
                     completeRecipe.getRecipeStepList(),
                     completeRecipe.getRecipe().getServings(),
                     completeRecipe.getRecipe().getRecipeImage(),
-                    completeRecipe.getRecipe().getIsFavorite()
+                    completeRecipe.getRecipe().getIsFavorite(),
+                    completeRecipe.getRecipe().getTimeStamp()
             );
             recipeList.add(newRecipe);
         }
@@ -97,7 +97,7 @@ public class RecipesDataRepository {
         });
     }
 
-    private void addRecipeListToDB(List<Recipe> recipeList) {
+/*    private void addRecipeListToDB(List<Recipe> recipeList) {
         RecipesDao recipesDao = recipeDatabase.recipesDao();
 
         int size = recipeList.size();
@@ -107,7 +107,7 @@ public class RecipesDataRepository {
 
             List<Ingredient> ingredientList = recipe.getIngredientsList();
 
-            Integer columnId = recipesDao.getColumnIdFromRecipeId(recipe.getRecipeId());
+            Integer columnId = recipesDao.getColumnIdFromTimeStamp(recipe.getRecipeId(), timeStamp);
             for (int j = 0; j < ingredientList.size(); j++) {
                 Ingredient ingredient = ingredientList.get(j);
                 ingredient.setRecipeId(columnId);
@@ -124,6 +124,6 @@ public class RecipesDataRepository {
 
         }
 
-    }
+    }*/
 
 }

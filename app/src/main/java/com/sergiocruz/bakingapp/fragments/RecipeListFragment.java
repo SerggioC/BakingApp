@@ -109,7 +109,7 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         Intent intent = new Intent(mContext, RecipeDetailActivity.class);
         startActivity(intent);
         viewModel.setRecipe(recipe);
-        viewModel.setRecipeStepNumber(-1);
+        //viewModel.setRecipeStepNumber(-1);
 
         Timber.d(recipe.getRecipeName());
     }

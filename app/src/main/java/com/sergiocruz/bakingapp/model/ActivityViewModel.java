@@ -50,6 +50,7 @@ public class ActivityViewModel extends AndroidViewModel {
         if (recipe == null) recipe = new MutableLiveData<>();
         if (recipeStep == null) recipeStep = new MutableLiveData<>();
         if (recipeStepNumber == null) recipeStepNumber = new MutableLiveData<>();
+        recipeStepNumber.setValue(-1);
     }
 
     public LiveData<List<Recipe>> getAllRecipes() {
@@ -59,6 +60,12 @@ public class ActivityViewModel extends AndroidViewModel {
 
     public void setRecipe(Recipe recipe) {
         this.recipe.setValue(recipe);
+
+    }
+
+    // Background Thread
+    public void postRecipe(Recipe recipe) {
+        this.recipe.postValue(recipe);
     }
 
     public LiveData<Recipe> getRecipe() {

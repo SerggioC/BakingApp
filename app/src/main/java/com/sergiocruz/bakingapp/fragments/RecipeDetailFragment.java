@@ -4,8 +4,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewCompat;
@@ -20,16 +18,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeStepAdapter;
+import com.sergiocruz.bakingapp.database.RecipeDatabase;
+import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
 import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
+import com.sergiocruz.bakingapp.model.CompleteRecipe;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import timber.log.Timber;
 
+import static com.sergiocruz.bakingapp.activities.RecipeDetailActivity.EXTRA_WIDGET_RECIPE;
 import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIEW_POSITION;
 
 /**
@@ -39,6 +42,7 @@ import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIE
  * on handsets.
  */
 public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener {
+    public static final int INVALID_POSITION = -1;
     /**
      * The fragment argument representing the recipe item
      * that this fragment represents.
@@ -61,12 +65,35 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
-
         Context context = getContext();
 
-        viewModel = ActivityViewModel.getInstance(this, false);
-        recipe = viewModel.getRecipe().getValue();
+        Integer RecipeColumnID = getActivity().getIntent().getIntExtra(EXTRA_WIDGET_RECIPE, INVALID_POSITION);
 
+        viewModel = ActivityViewModel.getInstance(this, false);
+        if (RecipeColumnID != INVALID_POSITION) {
+            new ThreadExecutor().diskIO().execute(() -> {
+                CompleteRecipe completeRecipe = RecipeDatabase.getDatabase(context).recipesDao().getCompleteRecipe(RecipeColumnID);
+                recipe = RecipeTypeConverter.convertToRecipe(completeRecipe);
+                viewModel.postRecipe(recipe);
+                initializeUI(savedInstanceState, rootView, context);
+            });
+        } else {
+            recipe = viewModel.getRecipe().getValue();
+            initializeUI(savedInstanceState, rootView, context);
+            setLayoutObserver();
+        }
+
+        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
+
+        viewModel.getRecipeStepNumber().observe(this, stepNumber -> {
+            changeViewHolderOutline(stepNumber);
+            Timber.d("Clicked Recipe number = " + stepNumber);
+        });
+
+        return rootView;
+    }
+
+    private void initializeUI(Bundle savedInstanceState, View rootView, Context context) {
         TextView recipeNameTextView = rootView.findViewById(R.id.recipe_name);
         recipeNameTextView.setText(recipe.getRecipeName());
 
@@ -85,23 +112,14 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
             recyclerView.smoothScrollToPosition(position);
         }
-
-        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
-
-        viewModel.getRecipeStepNumber().observe(this, stepNumber -> {
-            changeViewHolderOutline(stepNumber);
-            Timber.d("Clicked Recipe number = " + stepNumber);
-        });
         nestedScrollView = rootView.findViewById(R.id.nested_scroll_view);
         nestedScrollView.setFocusableInTouchMode(true);
         nestedScrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
-
-        return rootView;
     }
-//                if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+
+    //                if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
+
+    private void setLayoutObserver() {
         recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {

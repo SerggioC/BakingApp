@@ -119,7 +119,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
             views.setImageViewUri(R.id.widget_image_background, Uri.parse(recipeImageUrl));
         }
         views.setTextViewText(R.id.widget_recipe_name, recipe != null ? recipe.getRecipe().getRecipeName() : context.getString(R.string.app_name));
-        views.setTextViewText(R.id.widget_recipe_ingredients, getFormatedIngredientList(recipe != null ? recipe.getIngredientList() : null));
+        views.setTextViewText(R.id.widget_recipe_ingredients, getFormattedIngredientList(recipe != null ? recipe.getIngredientList() : null));
 
         // Widgets allow click handlers to only launch pending intents
         views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
@@ -127,7 +127,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         return views;
     }
 
-    private static String getFormatedIngredientList(List<Ingredient> ingredientList) {
+    private static String getFormattedIngredientList(List<Ingredient> ingredientList) {
         if (ingredientList == null) return "";
         int size = ingredientList.size();
         StringBuilder stringBuilder = new StringBuilder();

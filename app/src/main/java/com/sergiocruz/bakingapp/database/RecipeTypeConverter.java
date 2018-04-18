@@ -14,6 +14,25 @@ public class RecipeTypeConverter {
     public static List<Recipe> convertToRecipeList(List<CompleteRecipe> completeRecipeList) {
         List<Recipe> recipeList = new ArrayList<>(completeRecipeList.size());
         for (CompleteRecipe completeRecipe : completeRecipeList) {
+//            Recipe newRecipe = new Recipe(
+//                    completeRecipe.getRecipe().getColumnId(),
+//                    completeRecipe.getRecipe().getRecipeId(),
+//                    completeRecipe.getRecipe().getRecipeName(),
+//                    completeRecipe.getIngredientList(),
+//                    completeRecipe.getRecipeStepList(),
+//                    completeRecipe.getRecipe().getServings(),
+//                    completeRecipe.getRecipe().getRecipeImage(),
+//                    completeRecipe.getRecipe().getIsFavorite(),
+//                    completeRecipe.getRecipe().getTimeStamp()
+//            );
+            recipeList.add(convertToRecipe(completeRecipe));
+        }
+        return recipeList;
+    }
+
+
+    @TypeConverter
+    public static Recipe convertToRecipe(CompleteRecipe completeRecipe) {
             Recipe newRecipe = new Recipe(
                     completeRecipe.getRecipe().getColumnId(),
                     completeRecipe.getRecipe().getRecipeId(),
@@ -25,9 +44,7 @@ public class RecipeTypeConverter {
                     completeRecipe.getRecipe().getIsFavorite(),
                     completeRecipe.getRecipe().getTimeStamp()
             );
-            recipeList.add(newRecipe);
-        }
-        return recipeList;
+        return newRecipe;
     }
 
 

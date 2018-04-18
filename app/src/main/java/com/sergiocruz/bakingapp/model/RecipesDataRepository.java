@@ -3,13 +3,12 @@ package com.sergiocruz.bakingapp.model;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
-import android.support.annotation.NonNull;
 
 import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
+import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import retrofit2.Call;
@@ -51,28 +50,8 @@ public class RecipesDataRepository {
 
     private void getFavoritesFromDB(MutableLiveData<List<Recipe>> data) {
         List<CompleteRecipe> completeRecipeList = recipeDatabase.recipesDao().getFavoriteCompleteRecipeList();
-        List<Recipe> recipeList = convertToRecipeList(completeRecipeList);
+        List<Recipe> recipeList = RecipeTypeConverter.convertToRecipeList(completeRecipeList);
         data.postValue(recipeList);
-    }
-
-    @NonNull
-    private List<Recipe> convertToRecipeList(List<CompleteRecipe> completeRecipeList) {
-        List<Recipe> recipeList = new ArrayList<>(completeRecipeList.size());
-        for (CompleteRecipe completeRecipe : completeRecipeList) {
-            Recipe newRecipe = new Recipe(
-                    completeRecipe.getRecipe().getColumnId(),
-                    completeRecipe.getRecipe().getRecipeId(),
-                    completeRecipe.getRecipe().getRecipeName(),
-                    completeRecipe.getIngredientList(),
-                    completeRecipe.getRecipeStepList(),
-                    completeRecipe.getRecipe().getServings(),
-                    completeRecipe.getRecipe().getRecipeImage(),
-                    completeRecipe.getRecipe().getIsFavorite(),
-                    completeRecipe.getRecipe().getTimeStamp()
-            );
-            recipeList.add(newRecipe);
-        }
-        return recipeList;
     }
 
     private void getDataFromNetwork(MutableLiveData<List<Recipe>> data) {

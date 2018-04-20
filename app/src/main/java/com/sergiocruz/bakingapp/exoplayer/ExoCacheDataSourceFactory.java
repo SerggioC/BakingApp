@@ -17,13 +17,12 @@ import java.io.File;
 public class ExoCacheDataSourceFactory implements DataSource.Factory {
     private final Context context;
     private final DefaultDataSourceFactory defaultDatasourceFactory;
-    private final long maxFileSize, maxCacheSize;
+    private static final int MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
+    private static final int MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
-    public ExoCacheDataSourceFactory(Context context, long maxCacheSize, long maxFileSize, String userAgent) {
+    public ExoCacheDataSourceFactory(Context context, String userAgent) {
         super();
         this.context = context;
-        this.maxCacheSize = maxCacheSize;
-        this.maxFileSize = maxFileSize;
         DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
         defaultDatasourceFactory = new DefaultDataSourceFactory(this.context, bandwidthMeter,
                 new DefaultHttpDataSourceFactory(userAgent, bandwidthMeter));
@@ -31,10 +30,10 @@ public class ExoCacheDataSourceFactory implements DataSource.Factory {
 
     @Override
     public DataSource createDataSource() {
-        LeastRecentlyUsedCacheEvictor evictor = new LeastRecentlyUsedCacheEvictor(maxCacheSize);
+        LeastRecentlyUsedCacheEvictor evictor = new LeastRecentlyUsedCacheEvictor(MAX_CACHE_SIZE);
         SimpleCache simpleCache = new SimpleCache(new File(context.getCacheDir(), "media"), evictor);
         return new CacheDataSource(simpleCache, defaultDatasourceFactory.createDataSource(),
-                new FileDataSource(), new CacheDataSink(simpleCache, maxFileSize),
+                new FileDataSource(), new CacheDataSink(simpleCache, MAX_FILE_SIZE),
                 CacheDataSource.FLAG_BLOCK_ON_CACHE | CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR, null);
     }
 }

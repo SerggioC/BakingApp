@@ -18,11 +18,8 @@ import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
 
 public class ExoPlayerVideoHandler {
-    private static final int MAX_CACHE_SIZE = 100 * 1024 * 1024; // 100MB
-    private static final int MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
     private static ExoPlayerVideoHandler instance;
-    private SimpleExoPlayer mExoPlayer;
-    private Uri playerUri;
+    private static SimpleExoPlayer mExoPlayer;
     private boolean isPlayerPlaying;
 
     private ExoPlayerVideoHandler() {
@@ -37,7 +34,8 @@ public class ExoPlayerVideoHandler {
 
         if (mExoPlayer == null) {
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(context, new DefaultTrackSelector());
-            mExoPlayer.addListener(listener);
+            if (listener != null) mExoPlayer.addListener(listener);
+            isPlayerPlaying = true;
         }
 
         mExoPlayer.clearVideoSurface();
@@ -46,6 +44,13 @@ public class ExoPlayerVideoHandler {
         mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
         exoPlayerView.setPlayer(mExoPlayer);
 
+        return mExoPlayer;
+    }
+
+    /*
+    * InitExoPlayer() First
+    * */
+    public static SimpleExoPlayer getExoPlayer() {
         return mExoPlayer;
     }
 
@@ -60,7 +65,7 @@ public class ExoPlayerVideoHandler {
         String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
         return new ExtractorMediaSource(
                 uri,
-                new ExoCacheDataSourceFactory(context, MAX_CACHE_SIZE, MAX_FILE_SIZE, userAgent),
+                new ExoCacheDataSourceFactory(context, userAgent),
                 new DefaultExtractorsFactory(),
                 null,
                 null
@@ -78,14 +83,12 @@ public class ExoPlayerVideoHandler {
         if (mExoPlayer != null) {
             isPlayerPlaying = mExoPlayer.getPlayWhenReady();
             mExoPlayer.setPlayWhenReady(false);
-            isPlayerPlaying = false;
         }
     }
 
     public void goToForeground() {
         if (mExoPlayer != null) {
-            mExoPlayer.setPlayWhenReady(true);
-            isPlayerPlaying = true;
+            mExoPlayer.setPlayWhenReady(isPlayerPlaying);
         }
     }
 

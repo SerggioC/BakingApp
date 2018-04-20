@@ -82,6 +82,8 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
             recyclerView.smoothScrollToPosition(position);
         }
 
+
+
         return rootView;
     }
 

@@ -24,9 +24,9 @@
             </intent-filter>
         </activity>
 
+        <!--android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"-->
         <activity
             android:name=".activities.RecipeDetailActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:label="@string/title_recipe_detail"
             android:parentActivityName=".activities.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
@@ -38,7 +38,8 @@
         <activity
             android:name=".activities.FullScreenActivity"
             android:parentActivityName=".activities.RecipeDetailActivity"
-            android:theme="@style/AppTheme.FullScreen">
+            android:theme="@style/AppTheme.FullScreen"
+            android:screenOrientation="sensorLandscape">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

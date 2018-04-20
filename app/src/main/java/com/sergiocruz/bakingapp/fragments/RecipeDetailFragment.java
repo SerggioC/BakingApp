@@ -74,8 +74,11 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             new ThreadExecutor().diskIO().execute(() -> {
                 CompleteRecipe completeRecipe = RecipeDatabase.getDatabase(context).recipesDao().getCompleteRecipe(RecipeColumnID);
                 recipe = RecipeTypeConverter.convertToRecipe(completeRecipe);
-                viewModel.postRecipe(recipe);
-                initializeUI(savedInstanceState, rootView, context);
+                new ThreadExecutor().mainThread().execute(() -> {
+                    viewModel.setRecipe(recipe);
+                    initializeUI(savedInstanceState, rootView, context);
+                });
+
             });
         } else {
             recipe = viewModel.getRecipe().getValue();
@@ -161,6 +164,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         int adapterPosition = stepClicked + 1;
         if (adapterPosition == lastAdapterPosition) return;
 
+        if (recyclerView == null) return;
         RecipeStepAdapter.RecipeStepViewHolder viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) recyclerView.findViewHolderForAdapterPosition(adapterPosition);
         if (viewHolder == null) return;
         viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background_selected));

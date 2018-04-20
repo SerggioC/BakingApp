@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -29,17 +31,23 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.activities.FullScreenActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
-import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
+import com.sergiocruz.bakingapp.exoplayer.ExoCacheDataSourceFactory;
 import com.sergiocruz.bakingapp.exoplayer.MediaSessionCallBacks;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
@@ -51,6 +59,8 @@ import timber.log.Timber;
 
 import static android.app.Activity.RESULT_OK;
 import static android.content.Context.NOTIFICATION_SERVICE;
+import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_PLAYING_KEY;
+import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_POSITION_KEY;
 
 public class RecipeStepFragment extends Fragment implements Player.EventListener {
     public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
@@ -59,6 +69,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
     public static final Integer FULL_SCREEN_REQUEST_CODE = 0x02;
     public static final String FULL_SCREEN_PARENT_EXTRA = "full_screen_parent_extra";
+    private static final String ENTERING_FULLSCREEN_KEY = "key_entering_fullscren";
+    public static final String PLAYER_URI_KEY = "key_exoplayer_uri_key";
     private static MediaSessionCompat mMediaSession;
     private ActivityViewModel viewModel;
     private List<RecipeStep> stepsList;
@@ -68,12 +80,18 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private PlaybackStateCompat.Builder mPlaybackState;
     private NotificationManager mNotificationManager;
     private Context mContext;
-    private Boolean isFullScreen;
-    private ImageView mExoFullScreenIcon;
     private SimpleExoPlayer mExoPlayer;
-    private boolean isParentFullScreen = false;
     private boolean isTwoPane;
     private boolean isDetached = false;
+    private Boolean hasSavedState = false;
+    private Boolean savedIsExoPlaying;
+    private Long savedExoPosition;
+    private boolean enteringFullScreen = false;
+    private ImageView mExoFullScreenIcon;
+    private ImageButton nextButton;
+    private ImageButton previousButton;
+    private boolean isPlayerPlaying;
+    private Uri mExoPlayerUri;
 
     public RecipeStepFragment() {
     }
@@ -85,12 +103,23 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         setTransitions();
     }
 
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null) {
+            mExoPlayerUri = Uri.parse(savedInstanceState.getString(PLAYER_URI_KEY, ""));
+            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
+            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
+            enteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULLSCREEN_KEY, enteringFullScreen);
+            hasSavedState = true;
+        }
+    }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
-        // if the device is on landscape layout mode and it's not a tablet, enter fullscreen with player
+        // enter fullscreen with player if the device rotates to landscape layout mode and it's not a tablet
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE && !isTwoPane) {
             enterFullscreen();
@@ -100,7 +129,23 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+        saveToBundle(outState);
+    }
 
+    private Bundle saveToBundle(@NonNull Bundle outState) {
+        outState.putString(PLAYER_URI_KEY, mExoPlayerUri.toString());
+        outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer.getPlayWhenReady());
+        outState.putLong(PLAYER_POSITION_KEY, mExoPlayer.getCurrentPosition());
+        outState.putBoolean(ENTERING_FULLSCREEN_KEY, enteringFullScreen);
+        return outState;
+    }
+
+    private void bindViews(View rootView) {
+        stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
+        exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
+        mExoFullScreenIcon = exoPlayerView.findViewById(R.id.exo_fullscreen_icon);
+        nextButton = rootView.findViewById(R.id.next_btn);
+        previousButton = rootView.findViewById(R.id.previous_btn);
     }
 
     /**
@@ -125,81 +170,97 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
+        bindViews(rootView);
+        setupExoPlayer();
 
         // TODO favorites
         viewModel = ActivityViewModel.getInstance(this, false);
         stepNumber = viewModel.getRecipeStepNumber().getValue();
-        if (stepNumber == null) stepNumber = -1;
-        stepsList = viewModel.getRecipe().getValue().getStepsList();
+
+        viewModel.getRecipe().observe(this, recipe -> stepsList = recipe.getStepsList());
+
         viewModel.getRecipeStep().observe(this, recipeStep -> {
             if (recipeStep == null) return;
             stepNumber = viewModel.getRecipeStepNumber().getValue();
-            loadVideo(Uri.parse(recipeStep.getVideoUrl()));
-
+            //loadAndPlayVideo(Uri.parse(recipeStep.getVideoUrl())); // TODO REMOVE SAMPLE VIDEO URL!
+            loadAndPlayVideo(mContext, Uri.parse("https://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_10mb.mp4"));
             updateFragmentUI(recipeStep);
         });
 
-        setupExoPlayer(rootView);
-
-        setupFragmentUI(rootView, viewModel.getRecipeStep().getValue());
+        setupFragmentUI(viewModel.getRecipeStep().getValue());
 
         return rootView;
+    }
+
+    private void setupExoPlayer() {
+        //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT); // on XML
+
+        if (mExoPlayer == null) {
+            mExoPlayer = ExoPlayerFactory.newSimpleInstance(mContext, new DefaultTrackSelector());
+            mExoPlayer.addListener(this);
+            isPlayerPlaying = true;
+        }
+
+        mExoPlayer.clearVideoSurface();
+        mExoPlayer.setVideoSurfaceView((SurfaceView) exoPlayerView.getVideoSurfaceView());
+        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+        mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
+        exoPlayerView.setPlayer(mExoPlayer);
+
+        mExoFullScreenIcon.setOnClickListener(v -> enterFullscreen());
+
+        initializeMediaSession();
+
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            mExoPlayerUri = Uri.parse(data.getStringExtra(PLAYER_URI_KEY));
+            savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
+            savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
+            hasSavedState = true;
+            enteringFullScreen = true;
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (isParentFullScreen) {
-            ExoPlayerVideoHandler.getInstance().initExoPlayer(mContext, exoPlayerView, this);
-            //ExoPlayerVideoHandler.getInstance().goToForeground();
-            mExoPlayer.setPlayWhenReady(true);
-        }
-        Timber.d("IsParentFullScreen= " + isParentFullScreen);
-    }
 
-    private void setupExoPlayer(View rootView) {
-        //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
-        exoPlayerView = rootView.findViewById(R.id.exoPlayerView);
-        mExoFullScreenIcon = exoPlayerView.findViewById(R.id.exo_fullscreen_icon);
-        mExoPlayer = ExoPlayerVideoHandler.getInstance().initExoPlayer(mContext, exoPlayerView, this);
-        initializeMediaSession();
-        mExoFullScreenIcon.setOnClickListener(v -> enterFullscreen());
+
+        if (hasSavedState && !enteringFullScreen) {
+            if (mExoPlayerUri != null) mExoPlayer.prepare(getMediaSource(mContext, mExoPlayerUri));
+            if (savedIsExoPlaying != null) mExoPlayer.setPlayWhenReady(savedIsExoPlaying);
+            if (savedExoPosition != null) mExoPlayer.seekTo(savedExoPosition);
+
+        }
+
+        Timber.d("OnResume hassavedState" + hasSavedState);
     }
 
     private void enterFullscreen() {
-        if (stepNumber <0) return;
-
-        isFullScreen = true; // unused after this
+        if (stepNumber < 0) return; // Don't enter fullscreen if no video selected.
+        enteringFullScreen = true;
         Intent intent = new Intent(mContext, FullScreenActivity.class);
+        intent.putExtras(saveToBundle(new Bundle()));
         startActivityForResult(intent, FULL_SCREEN_REQUEST_CODE);
+        //startActivity(intent);
     }
 
-    /// Alternatively save the value on the viewModel.
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        
-        if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            isParentFullScreen = data.getBooleanExtra(FULL_SCREEN_PARENT_EXTRA, false);
-        }
-
-    }
-
-    private void setupFragmentUI(View rootView, RecipeStep recipeStep) {
-        stepDetailTV = rootView.findViewById(R.id.recipe_step_detail_TextView);
+    private void setupFragmentUI(RecipeStep recipeStep) {
 
         updateFragmentUI(recipeStep);
 
-        ImageButton next = rootView.findViewById(R.id.next_btn);
-        next.setOnClickListener(v -> {
+        nextButton.setOnClickListener(v -> {
             int nextStepNumber = stepNumber + 1;
             if (nextStepNumber > stepsList.size() - 1) return;
             viewModel.setRecipeStepNumber(nextStepNumber);
             viewModel.setRecipeStep(stepsList.get(nextStepNumber));
         });
 
-        ImageButton previous = rootView.findViewById(R.id.previous_btn);
-        previous.setOnClickListener(v -> {
+        previousButton.setOnClickListener(v -> {
             int previousStepNumber = stepNumber - 1;
             if (previousStepNumber < 0) return;
             viewModel.setRecipeStepNumber(previousStepNumber);
@@ -219,17 +280,80 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         }
     }
 
-    private void loadVideo(Uri uri) {
-        Timber.i("Video Uri = " + uri);
-        ExoPlayerVideoHandler.getInstance().loadVideo(mContext, uri);
+    public void loadAndPlayVideo(Context context, Uri uri) {
+        mExoPlayerUri = uri;
+        mExoPlayer.prepare(getMediaSource(context, uri));
+        mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
+        mExoPlayer.setPlayWhenReady(true);
+    }
+
+    @NonNull
+    private MediaSource getMediaSource(Context context, Uri uri) {
+        String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
+        return new ExtractorMediaSource(
+                uri,
+                new ExoCacheDataSourceFactory(context, userAgent),
+                new DefaultExtractorsFactory(),
+                null,
+                null
+        );
+    }
+
+    public void goToBackground() {
+        if (mExoPlayer != null) {
+            isPlayerPlaying = mExoPlayer.getPlayWhenReady();
+            mExoPlayer.setPlayWhenReady(false);
+        }
+    }
+
+    public void goToForeground() {
+        if (mExoPlayer != null) {
+            mExoPlayer.setPlayWhenReady(isPlayerPlaying);
+        }
     }
 
     @Override
     public void onPause(){
         super.onPause();
-        ExoPlayerVideoHandler.getInstance().goToBackground();
+        goToBackground();
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        isDetached = true;
+
+        if (!enteringFullScreen) {
+            releaseVideoPlayer();
+        }
+
+    }
+
+    public void releaseVideoPlayer() {
+        if (mExoPlayer != null) {
+            mExoPlayer.release();
+            mExoPlayer = null;
+        }
+    }
+
+    /**
+     * Media Notifications and controls callBacks
+     * */
     private void initializeMediaSession() {
 
         getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -302,13 +426,12 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
 
         if ((playbackState == Player.STATE_READY) & mExoPlayer.getPlayWhenReady()) {
-
             mPlaybackState.setState(PlaybackStateCompat.STATE_PLAYING, mExoPlayer.getContentPosition(), 1);
+            isPlayerPlaying = true;
 
         } else if ((playbackState == Player.STATE_READY) && !mExoPlayer.getPlayWhenReady()) {
-
             mPlaybackState.setState(PlaybackStateCompat.STATE_PAUSED, mExoPlayer.getContentPosition(), 1);
-
+            isPlayerPlaying = false;
         }
 
         mMediaSession.setPlaybackState(mPlaybackState.build());
@@ -460,22 +583,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             MediaButtonReceiver.handleIntent(mMediaSession, intent);
             Timber.d("Intent = " + intent.getAction());
         }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        isDetached = true;
-
-        if (isTwoPane) {
-            if (mExoPlayer != null) {
-                mExoPlayer.stop();
-                mExoPlayer.release();
-            }
-            mExoPlayer = null;
-            ExoPlayerVideoHandler.getInstance().releaseVideoPlayer();
-        }
-
     }
 
     private void stopNotifications() {

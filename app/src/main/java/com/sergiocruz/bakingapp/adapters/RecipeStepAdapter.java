@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -97,6 +98,10 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             Timber.i("position = " + (position - 1));
 
             RecipeStep recipeStep = recipeStepList.get(position - 1);
+
+            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                    MimeTypeMap.getFileExtensionFromUrl(recipeStep.getThumbnailUrl()));
+            Timber.w("type from url= " + mimeType);
 
             Glide.with(context)
                     .load(recipeStep.getThumbnailUrl())

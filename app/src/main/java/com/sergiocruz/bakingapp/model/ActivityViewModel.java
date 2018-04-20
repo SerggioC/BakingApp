@@ -60,7 +60,6 @@ public class ActivityViewModel extends AndroidViewModel {
 
     public void setRecipe(Recipe recipe) {
         this.recipe.setValue(recipe);
-
     }
 
     // Background Thread

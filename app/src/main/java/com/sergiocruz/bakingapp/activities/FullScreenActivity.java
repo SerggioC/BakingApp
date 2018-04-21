@@ -2,26 +2,31 @@ package com.sergiocruz.bakingapp.activities;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.ui.PlayerView;
 import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.exoplayer.ExoCacheDataSourceFactory;
-import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
+
+import timber.log.Timber;
 
 import static com.sergiocruz.bakingapp.fragments.RecipeStepFragment.PLAYER_URI_KEY;
 
@@ -58,7 +63,7 @@ public class FullScreenActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) { // get ExoPlayer status&position
         super.onRestoreInstanceState(savedInstanceState);
         if (savedInstanceState != null) {
-            mExoPlayerUri = Uri.parse(savedInstanceState.getString(PLAYER_URI_KEY, ""));
+            mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
             savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
             hasSavedState = true;
@@ -77,10 +82,13 @@ public class FullScreenActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
-            mExoPlayerUri = Uri.parse(extras.getString(PLAYER_URI_KEY, ""));
+            mExoPlayerUri = extras.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = extras.getBoolean(PLAYER_PLAYING_KEY);
             savedExoPosition = extras.getLong(PLAYER_POSITION_KEY);
             hasSavedState = true;
+            Timber.d("mExoPlayerUri= " + mExoPlayerUri +"\n" +
+                    "savedIsExoPlaying= " + savedIsExoPlaying + "\n" +
+                    "savedExoPosition= " + savedExoPosition);
         }
 
         setupExoPlayer();
@@ -95,7 +103,11 @@ public class FullScreenActivity extends AppCompatActivity {
     private void setupExoPlayer() {
         //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT); // on XML
 
-        mExoPlayer = ExoPlayerVideoHandler.getInstance().initExoPlayer(this, exoPlayerView, null);
+        mExoPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultTrackSelector());
+        mExoPlayer.clearVideoSurface();
+        mExoPlayer.setVideoSurfaceView((SurfaceView) exoPlayerView.getVideoSurfaceView());
+        exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+        exoPlayerView.setPlayer(mExoPlayer);
 
         if (hasSavedState) {
             if (mExoPlayerUri != null) loadVideo(mExoPlayerUri);

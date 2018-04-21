@@ -22,6 +22,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
 import android.view.View;
@@ -66,11 +67,11 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
     public static final String NOTIFICATION_TAG = "lets_bake_notification_tag";
     public static final int NOTIFICATION_ID = 0x01;
-    private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
     public static final Integer FULL_SCREEN_REQUEST_CODE = 0x02;
     public static final String FULL_SCREEN_PARENT_EXTRA = "full_screen_parent_extra";
-    private static final String ENTERING_FULLSCREEN_KEY = "key_entering_fullscren";
     public static final String PLAYER_URI_KEY = "key_exoplayer_uri_key";
+    private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
+    private static final String ENTERING_FULLSCREEN_KEY = "key_entering_fullscren";
     private static MediaSessionCompat mMediaSession;
     private ActivityViewModel viewModel;
     private List<RecipeStep> stepsList;
@@ -104,18 +105,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        if (savedInstanceState != null) {
-            mExoPlayerUri = Uri.parse(savedInstanceState.getString(PLAYER_URI_KEY, ""));
-            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
-            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
-            enteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULLSCREEN_KEY, enteringFullScreen);
-            hasSavedState = true;
-        }
-    }
-
-    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
 
@@ -129,11 +118,11 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        saveToBundle(outState);
+        saveStateToBundle(outState);
     }
 
-    private Bundle saveToBundle(@NonNull Bundle outState) {
-        outState.putString(PLAYER_URI_KEY, mExoPlayerUri.toString());
+    private Bundle saveStateToBundle(@NonNull Bundle outState) {
+        outState.putParcelable(PLAYER_URI_KEY, mExoPlayerUri);
         outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer.getPlayWhenReady());
         outState.putLong(PLAYER_POSITION_KEY, mExoPlayer.getCurrentPosition());
         outState.putBoolean(ENTERING_FULLSCREEN_KEY, enteringFullScreen);
@@ -146,6 +135,9 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         mExoFullScreenIcon = exoPlayerView.findViewById(R.id.exo_fullscreen_icon);
         nextButton = rootView.findViewById(R.id.next_btn);
         previousButton = rootView.findViewById(R.id.previous_btn);
+
+        mExoFullScreenIcon.setOnClickListener(v -> enterFullscreen());
+
     }
 
     /**
@@ -171,25 +163,55 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
         bindViews(rootView);
-        setupExoPlayer();
+
+        return rootView;
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null) {
+            mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
+            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
+            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
+            enteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULLSCREEN_KEY, enteringFullScreen);
+            hasSavedState = true;
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            mExoPlayerUri = data.getParcelableExtra(PLAYER_URI_KEY);
+            savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
+            savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
+            hasSavedState = true;
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
 
         // TODO favorites
-        viewModel = ActivityViewModel.getInstance(this, false);
+        if (viewModel == null)
+            viewModel = ActivityViewModel.getInstance(this, false);
+
         stepNumber = viewModel.getRecipeStepNumber().getValue();
 
         viewModel.getRecipe().observe(this, recipe -> stepsList = recipe.getStepsList());
-
         viewModel.getRecipeStep().observe(this, recipeStep -> {
             if (recipeStep == null) return;
             stepNumber = viewModel.getRecipeStepNumber().getValue();
-            //loadAndPlayVideo(Uri.parse(recipeStep.getVideoUrl())); // TODO REMOVE SAMPLE VIDEO URL!
-            loadAndPlayVideo(mContext, Uri.parse("https://www.sample-videos.com/video/mp4/720/big_buck_bunny_720p_10mb.mp4"));
+            loadAndPlayVideo(mContext, Uri.parse(recipeStep.getVideoUrl()));
             updateFragmentUI(recipeStep);
         });
 
         setupFragmentUI(viewModel.getRecipeStep().getValue());
 
-        return rootView;
+        setupExoPlayer();
+
     }
 
     private void setupExoPlayer() {
@@ -198,53 +220,31 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         if (mExoPlayer == null) {
             mExoPlayer = ExoPlayerFactory.newSimpleInstance(mContext, new DefaultTrackSelector());
             mExoPlayer.addListener(this);
-            isPlayerPlaying = true;
         }
 
         mExoPlayer.clearVideoSurface();
         mExoPlayer.setVideoSurfaceView((SurfaceView) exoPlayerView.getVideoSurfaceView());
         exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-        mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
         exoPlayerView.setPlayer(mExoPlayer);
-
-        mExoFullScreenIcon.setOnClickListener(v -> enterFullscreen());
 
         initializeMediaSession();
 
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            mExoPlayerUri = Uri.parse(data.getStringExtra(PLAYER_URI_KEY));
-            savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
-            savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
-            hasSavedState = true;
-            enteringFullScreen = true;
-        }
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-
-        if (hasSavedState && !enteringFullScreen) {
-            if (mExoPlayerUri != null) mExoPlayer.prepare(getMediaSource(mContext, mExoPlayerUri));
-            if (savedIsExoPlaying != null) mExoPlayer.setPlayWhenReady(savedIsExoPlaying);
-            if (savedExoPosition != null) mExoPlayer.seekTo(savedExoPosition);
-
+        if (hasSavedState) {
+            mExoPlayer.prepare(getMediaSource(mContext, mExoPlayerUri));
+            mExoPlayer.setPlayWhenReady(savedIsExoPlaying);
+            mExoPlayer.seekTo(savedExoPosition);
+            hasSavedState = false;
         }
 
-        Timber.d("OnResume hassavedState" + hasSavedState);
+        Timber.d("OnResume hasSavedState" + hasSavedState);
     }
 
     private void enterFullscreen() {
-        if (stepNumber < 0) return; // Don't enter fullscreen if no video selected.
+        // Don't enter fullscreen if no video selected or empty Uri.
+        if (stepNumber < 0 || TextUtils.isEmpty(mExoPlayerUri.toString())) return;
         enteringFullScreen = true;
         Intent intent = new Intent(mContext, FullScreenActivity.class);
-        intent.putExtras(saveToBundle(new Bundle()));
+        intent.putExtras(saveStateToBundle(new Bundle()));
         startActivityForResult(intent, FULL_SCREEN_REQUEST_CODE);
         //startActivity(intent);
     }
@@ -275,8 +275,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         } else {
             stepDetailTV.setText(
                     getString(R.string.step_number) + " " + stepNumber + "\n" +
-                    recipeStep.getShortDesc() + "\n" +
-                    recipeStep.getDescription());
+                            recipeStep.getShortDesc() + "\n" +
+                            recipeStep.getDescription());
         }
     }
 
@@ -313,7 +313,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
         goToBackground();
     }
@@ -337,11 +337,10 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public void onDetach() {
         super.onDetach();
         isDetached = true;
-
         if (!enteringFullScreen) {
+            stopNotifications();
             releaseVideoPlayer();
         }
-
     }
 
     public void releaseVideoPlayer() {
@@ -353,7 +352,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     /**
      * Media Notifications and controls callBacks
-     * */
+     */
     private void initializeMediaSession() {
 
         getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
@@ -567,14 +566,9 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         this.setSharedElementReturnTransition(new DetailsTransition());
     }
 
-    public class DetailsTransition extends TransitionSet {
-        public DetailsTransition() {
-            setOrdering(ORDERING_TOGETHER);
-            addTransition(new ChangeBounds())
-                    .addTransition(new ChangeTransform())
-                    .addTransition(new ChangeImageTransform())
-                    .addTransition(new ChangeClipBounds());
-        }
+    private void stopNotifications() {
+        if (mMediaSession != null) mMediaSession.setActive(false);
+        if (mNotificationManager != null) mNotificationManager.cancel(NOTIFICATION_TAG, NOTIFICATION_ID);
     }
 
     public static class MediaReceiver extends BroadcastReceiver {
@@ -585,9 +579,14 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         }
     }
 
-    private void stopNotifications() {
-        if (mMediaSession != null) mMediaSession.setActive(false);
-        if (mNotificationManager != null) mNotificationManager.cancel(NOTIFICATION_TAG, NOTIFICATION_ID);
+    public class DetailsTransition extends TransitionSet {
+        public DetailsTransition() {
+            setOrdering(ORDERING_TOGETHER);
+            addTransition(new ChangeBounds())
+                    .addTransition(new ChangeTransform())
+                    .addTransition(new ChangeImageTransform())
+                    .addTransition(new ChangeClipBounds());
+        }
     }
 
 

@@ -24,7 +24,6 @@ import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeStepAdapter;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
 import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
-import com.sergiocruz.bakingapp.exoplayer.ExoPlayerVideoHandler;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.CompleteRecipe;
 import com.sergiocruz.bakingapp.model.Recipe;
@@ -196,9 +195,6 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     public void onDetach() {
         super.onDetach();
         viewModel.setRecipeStep(null);
-        if (!isTwoPane) {
-            ExoPlayerVideoHandler.getInstance().releaseVideoPlayer();
-        }
     }
 
 }

@@ -38,8 +38,8 @@
         <activity
             android:name=".activities.FullScreenActivity"
             android:parentActivityName=".activities.RecipeDetailActivity"
-            android:theme="@style/AppTheme.FullScreen"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/AppTheme.FullScreen">
 
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -55,16 +55,17 @@
         <!-- Widgets Provider -->
         <receiver android:name=".ui.widgets.RecipeWidgetProvider">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
 
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/recipe_widget_info" />
+                android:resource="@xml/recipe_widget_info"/>
         </receiver>
 
-        <service android:name=".ui.widgets.GridWidgetService"
-                 android:permission="android.permission.BIND_REMOTEVIEWS"/>
+        <service
+            android:name=".ui.widgets.GridWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"/>
 
         <service android:name=".ui.widgets.PlantWateringService"/>
 

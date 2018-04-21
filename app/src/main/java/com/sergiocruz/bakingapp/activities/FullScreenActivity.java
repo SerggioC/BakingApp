@@ -117,9 +117,11 @@ public class FullScreenActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onPause(){ // For onBackPressed or when leaving app
-        if (!stateManaged) manageExoPlayerState();
-        super.onPause();
+    public void onBackPressed() {
+        if (!stateManaged) {
+            manageExoPlayerState();
+        }
+        super.onBackPressed();
     }
 
     @Override

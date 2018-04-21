@@ -93,6 +93,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private ImageButton previousButton;
     private boolean isPlayerPlaying;
     private Uri mExoPlayerUri;
+    private boolean isParentFullScreen = false;
 
     public RecipeStepFragment() {
     }
@@ -176,7 +177,12 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
             enteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULLSCREEN_KEY, enteringFullScreen);
             hasSavedState = true;
+            isParentFullScreen = false;
         }
+        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
+                "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
+                "savedExoPosition " + savedExoPosition + "\n" +
+                "enteringFullScreen " + enteringFullScreen);
     }
 
     @Override
@@ -187,12 +193,19 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
             savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
             hasSavedState = true;
+            isParentFullScreen = true;
         }
+        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
+                "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
+                "savedExoPosition " + savedExoPosition + "\n" +
+                "enteringFullScreen " + enteringFullScreen);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        setupExoPlayer();
 
         // TODO favorites
         if (viewModel == null)
@@ -204,13 +217,18 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         viewModel.getRecipeStep().observe(this, recipeStep -> {
             if (recipeStep == null) return;
             stepNumber = viewModel.getRecipeStepNumber().getValue();
-            loadAndPlayVideo(mContext, Uri.parse(recipeStep.getVideoUrl()));
+            Timber.d("hasSavedState " + hasSavedState + "\n" +
+                    "isParentFullScreen " + isParentFullScreen);
+            if (!hasSavedState && !isParentFullScreen){
+                loadAndPlayVideo(mContext, Uri.parse(recipeStep.getVideoUrl()));
+                hasSavedState = false;
+                isParentFullScreen = false;
+            }
+
             updateFragmentUI(recipeStep);
         });
 
         setupFragmentUI(viewModel.getRecipeStep().getValue());
-
-        setupExoPlayer();
 
     }
 
@@ -231,9 +249,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
         if (hasSavedState) {
             mExoPlayer.prepare(getMediaSource(mContext, mExoPlayerUri));
-            mExoPlayer.setPlayWhenReady(savedIsExoPlaying);
             mExoPlayer.seekTo(savedExoPosition);
-            hasSavedState = false;
+            mExoPlayer.setPlayWhenReady(savedIsExoPlaying);
         }
 
         Timber.d("OnResume hasSavedState" + hasSavedState);

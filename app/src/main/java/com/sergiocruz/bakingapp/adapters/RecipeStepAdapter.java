@@ -6,7 +6,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,6 +14,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.RecipeStep;
+import com.sergiocruz.bakingapp.utils.AndroidUtils;
 
 import java.util.List;
 
@@ -99,15 +99,24 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             RecipeStep recipeStep = recipeStepList.get(position - 1);
 
-            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                    MimeTypeMap.getFileExtensionFromUrl(recipeStep.getThumbnailUrl()));
-            Timber.w("type from url= " + mimeType);
+            String thumbnailUrl = recipeStep.getThumbnailUrl();
+            AndroidUtils.MimeType mimeType = AndroidUtils.getMymeTypeFromString(thumbnailUrl);
+            Timber.i("type from url= " + mimeType);
 
-            Glide.with(context)
-                    .load(recipeStep.getThumbnailUrl())
-                    .transition(withCrossFade())
-                    .apply(new RequestOptions().error(R.drawable.ic_chef))
-                    .into(viewHolder.recipeImageIcon);
+            switch (mimeType) {
+                case IMAGE:
+                    Glide.with(context)
+                            .load(thumbnailUrl)
+                            .transition(withCrossFade())
+                            .apply(new RequestOptions().error(R.drawable.ic_chef))
+                            .into(viewHolder.recipeImageIcon);
+                default:
+                    Glide.with(context)
+                            .load(R.drawable.ic_chef)
+                            .transition(withCrossFade())
+                            .into(viewHolder.recipeImageIcon);
+            }
+
 
             String shortDesc = recipeStep.getShortDesc();
             String description = TextUtils.isEmpty(shortDesc) ? "View Recipe Step " + position : shortDesc;

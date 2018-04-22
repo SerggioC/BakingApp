@@ -128,6 +128,15 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+                if (viewModel != null) {
+                    Integer stepnumber = viewModel.getRecipeStepNumber().getValue();
+                    if (stepnumber != null) {
+                        savedStepPosition = stepnumber;
+                        savedRecyclerViewPosition = stepnumber + 1;
+                    }
+
+                }
+
                 changeViewHolderOutline(savedStepPosition);
                 recyclerView.smoothScrollToPosition(savedRecyclerViewPosition);
                 recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
@@ -137,6 +146,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
     @Override
     public void onSaveInstanceState(Bundle currentState) {
+        Timber.i("savedStepPosition= " + savedStepPosition);
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
         currentState.putInt(RECIPE_STEP_POSITION, viewModel.getRecipeStepNumber().getValue());
     }
@@ -177,7 +187,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
             viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background));
         }
 
-        if (isTwoPane) scrollIfNeeded(viewHolder.itemView);
+        scrollIfNeeded(viewHolder.itemView);
 
         lastAdapterPosition = adapterPosition;
     }

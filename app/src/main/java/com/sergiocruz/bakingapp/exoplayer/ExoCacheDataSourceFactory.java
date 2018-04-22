@@ -32,8 +32,13 @@ public class ExoCacheDataSourceFactory implements DataSource.Factory {
     public DataSource createDataSource() {
         LeastRecentlyUsedCacheEvictor evictor = new LeastRecentlyUsedCacheEvictor(MAX_CACHE_SIZE);
         SimpleCache simpleCache = new SimpleCache(new File(context.getCacheDir(), "media"), evictor);
-        return new CacheDataSource(simpleCache, defaultDatasourceFactory.createDataSource(),
-                new FileDataSource(), new CacheDataSink(simpleCache, MAX_FILE_SIZE),
-                CacheDataSource.FLAG_BLOCK_ON_CACHE | CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR, null);
+        return new CacheDataSource(
+                simpleCache,
+                defaultDatasourceFactory.createDataSource(),
+                new FileDataSource(),
+                new CacheDataSink(simpleCache, MAX_FILE_SIZE),
+                CacheDataSource.FLAG_BLOCK_ON_CACHE | CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR | CacheDataSource.FLAG_IGNORE_CACHE_FOR_UNSET_LENGTH_REQUESTS,
+                null
+        );
     }
 }

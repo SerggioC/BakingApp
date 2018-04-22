@@ -70,25 +70,24 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public static final Integer FULL_SCREEN_REQUEST_CODE = 0x02;
     public static final String PLAYER_URI_KEY = "key_exoplayer_uri_key";
     private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
-    private static MediaSessionCompat mMediaSession;
+    private Context mContext;
     private ActivityViewModel viewModel;
     private List<RecipeStep> stepsList;
     private Integer stepNumber;
     private TextView stepDetailTV;
     private PlayerView exoPlayerView;
+    private ImageButton nextButton;
+    private ImageButton previousButton;
+    private static MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mPlaybackState;
     private NotificationManager mNotificationManager;
-    private Context mContext;
     private SimpleExoPlayer mExoPlayer;
     private boolean isDetached = false;
     private Boolean hasSavedState = false;
+    private Uri mExoPlayerUri;
     private Boolean savedIsExoPlaying;
     private Long savedExoPosition;
-    private ImageButton nextButton;
-    private ImageButton previousButton;
-    private boolean isPlayerPlaying;
-    private Uri mExoPlayerUri;
-    private boolean isParentFullScreen = false;
+    private Boolean isParentFullScreen = false;
 
     public RecipeStepFragment() {
     }
@@ -147,43 +146,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         View rootView = inflater.inflate(R.layout.fragment_recipe_step, container, false);
         bindViews(rootView);
 
-        return rootView;
-    }
-
-    @Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        if (savedInstanceState != null) {
-            mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
-            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
-            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
-            hasSavedState = true;
-            isParentFullScreen = false;
-        }
-        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
-                "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
-                "savedExoPosition " + savedExoPosition + "\n");
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            mExoPlayerUri = data.getParcelableExtra(PLAYER_URI_KEY);
-            savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
-            savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
-            hasSavedState = true;
-            isParentFullScreen = true;
-        }
-        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
-                "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
-                "savedExoPosition " + savedExoPosition);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
         setupExoPlayer();
 
         // TODO favorites
@@ -198,8 +160,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             stepNumber = viewModel.getRecipeStepNumber().getValue();
             Timber.d("hasSavedState " + hasSavedState + "\n" +
                     "isParentFullScreen " + isParentFullScreen);
-            if (!hasSavedState && !isParentFullScreen){
-                loadAndPlayVideo(mContext, Uri.parse(recipeStep.getVideoUrl()));
+            if (!hasSavedState && !isParentFullScreen) {
+                loadAndPlayVideo(mContext, Uri.parse(recipeStep.getVideoUrl()), 0L, true);
                 hasSavedState = false;
                 isParentFullScreen = false;
             }
@@ -210,9 +172,60 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         setupFragmentUI(viewModel.getRecipeStep().getValue());
 
         // enter fullscreen with player if the device rotates to landscape layout mode and it's not a tablet
+        // !isParentFullScreen to avoid entering fullscreen again on exiting from fullscreen
         Boolean isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && !isTwoPane && !isParentFullScreen) {
             enterFullscreen();
+        }
+
+        return rootView;
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if (savedInstanceState != null) {
+            mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
+            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
+            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
+            hasSavedState = true;
+            isParentFullScreen = false;
+        } else {
+            hasSavedState = false;
+            isParentFullScreen = false;
+        }
+
+        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
+                "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
+                "savedExoPosition " + savedExoPosition + "\n");
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
+            mExoPlayerUri = data.getParcelableExtra(PLAYER_URI_KEY);
+            savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
+            savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
+            hasSavedState = true;
+            isParentFullScreen = true;
+        } else {
+            hasSavedState = false;
+            isParentFullScreen = false;
+        }
+
+        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
+                "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
+                "savedExoPosition " + savedExoPosition);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (hasSavedState) {
+            loadAndPlayVideo(mContext, mExoPlayerUri, savedExoPosition, savedIsExoPlaying);
+            updateFragmentUI(viewModel.getRecipeStep().getValue());
+            hasSavedState = false;
         }
     }
 
@@ -227,14 +240,13 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         exoPlayerView.setPlayer(mExoPlayer);
 
         initializeMediaSession();
+    }
 
-        if (hasSavedState) {
-            mExoPlayer.prepare(getMediaSource(mContext, mExoPlayerUri));
-            mExoPlayer.seekTo(savedExoPosition);
-            mExoPlayer.setPlayWhenReady(savedIsExoPlaying);
-        }
-
-        Timber.d("OnResume hasSavedState" + hasSavedState);
+    public void loadAndPlayVideo(Context context, Uri uri, Long position, Boolean playWhenReady) {
+        mExoPlayerUri = uri;
+        mExoPlayer.prepare(getMediaSource(context, uri));
+        mExoPlayer.seekTo(position);
+        mExoPlayer.setPlayWhenReady(playWhenReady);
     }
 
     private void enterFullscreen() {
@@ -281,13 +293,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         }
     }
 
-    public void loadAndPlayVideo(Context context, Uri uri) {
-        mExoPlayerUri = uri;
-        mExoPlayer.prepare(getMediaSource(context, uri));
-        mExoPlayer.seekTo(mExoPlayer.getCurrentPosition() + 1);
-        mExoPlayer.setPlayWhenReady(true);
-    }
-
     @NonNull
     private MediaSource getMediaSource(Context context, Uri uri) {
         String userAgent = Util.getUserAgent(context, context.getString(R.string.app_name));
@@ -300,21 +305,12 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         );
     }
 
-    public void goToBackground() {
-        if (mExoPlayer != null) {
-            isPlayerPlaying = mExoPlayer.getPlayWhenReady();
-            mExoPlayer.setPlayWhenReady(false);
-        }
-    }
-
-    public void goToForeground() {
-        if (mExoPlayer != null) {
-            mExoPlayer.setPlayWhenReady(isPlayerPlaying);
-        }
-    }
-
     @Override
     public void onPause() {
+        if (mExoPlayer != null) {
+            mExoPlayer.setPlayWhenReady(false); // pause on background?
+        }
+
         super.onPause();
     }
 
@@ -431,11 +427,9 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
         if ((playbackState == Player.STATE_READY) & mExoPlayer.getPlayWhenReady()) {
             mPlaybackState.setState(PlaybackStateCompat.STATE_PLAYING, mExoPlayer.getContentPosition(), 1);
-            isPlayerPlaying = true;
 
         } else if ((playbackState == Player.STATE_READY) && !mExoPlayer.getPlayWhenReady()) {
             mPlaybackState.setState(PlaybackStateCompat.STATE_PAUSED, mExoPlayer.getContentPosition(), 1);
-            isPlayerPlaying = false;
         }
 
         mMediaSession.setPlaybackState(mPlaybackState.build());
@@ -568,19 +562,19 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     }
 
+    private void setTransitions() {
+        this.setSharedElementEnterTransition(new DetailsTransition());
+        this.setEnterTransition(new DetailsTransition());
+        this.setExitTransition(new DetailsTransition());
+        this.setSharedElementReturnTransition(new DetailsTransition());
+    }
+
     public static class MediaReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             MediaButtonReceiver.handleIntent(mMediaSession, intent);
             Timber.d("Intent = " + intent.getAction());
         }
-    }
-
-    private void setTransitions() {
-        this.setSharedElementEnterTransition(new DetailsTransition());
-        this.setEnterTransition(new DetailsTransition());
-        this.setExitTransition(new DetailsTransition());
-        this.setSharedElementReturnTransition(new DetailsTransition());
     }
 
     public class DetailsTransition extends TransitionSet {

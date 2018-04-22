@@ -42,6 +42,7 @@ import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIE
  */
 public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener {
     public static final int INVALID_POSITION = -1;
+    public static final String RECIPE_STEP_POSITION = "outstate_step_position";
     /**
      * The fragment argument representing the recipe item
      * that this fragment represents.
@@ -53,6 +54,8 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     private ActivityViewModel viewModel;
     private int lastAdapterPosition = 0;
     private NestedScrollView nestedScrollView;
+    private int savedStepPosition = -1;
+    private int savedRecyclerViewPosition;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -66,8 +69,8 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
         Context context = getContext();
 
+        // If entering from Widget
         Integer RecipeColumnID = getActivity().getIntent().getIntExtra(EXTRA_WIDGET_RECIPE, INVALID_POSITION);
-
         viewModel = ActivityViewModel.getInstance(this, false);
         if (RecipeColumnID != INVALID_POSITION) {
             new ThreadExecutor().diskIO().execute(() -> {
@@ -111,22 +114,22 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         recyclerView.setAdapter(adapter);
 
         if (savedInstanceState != null) {
-            int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
-            recyclerView.smoothScrollToPosition(position);
+            savedRecyclerViewPosition = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
+            savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_POSITION);
         }
         nestedScrollView = rootView.findViewById(R.id.nested_scroll_view);
         nestedScrollView.setFocusableInTouchMode(true);
-        nestedScrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        nestedScrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS); // Scroll to top
     }
 
-    //                if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
-
+    //if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
+    // Update Recipe step outline after the recyclerview has drawn
     private void setLayoutObserver() {
         recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                Integer recipeStepNumber = viewModel.getRecipeStepNumber().getValue();
-                changeViewHolderOutline(recipeStepNumber);
+                changeViewHolderOutline(savedStepPosition);
+                recyclerView.smoothScrollToPosition(savedRecyclerViewPosition);
                 recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
@@ -135,6 +138,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     @Override
     public void onSaveInstanceState(Bundle currentState) {
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
+        currentState.putInt(RECIPE_STEP_POSITION, viewModel.getRecipeStepNumber().getValue());
     }
 
     @Override
@@ -195,6 +199,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     public void onDetach() {
         super.onDetach();
         viewModel.setRecipeStep(null);
+        viewModel.setRecipeStepNumber(-1);
     }
 
 }

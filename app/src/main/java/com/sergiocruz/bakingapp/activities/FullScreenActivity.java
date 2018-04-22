@@ -118,9 +118,7 @@ public class FullScreenActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (!stateManaged) {
-            manageExoPlayerState();
-        }
+        if (!stateManaged) manageExoPlayerState();
         super.onBackPressed();
     }
 

@@ -13,4 +13,5 @@
     <string name="steps">Steps</string>
     <string name="recipe_image">Recipe Image</string>
     <string name="no_name_recipe">(No Recipe Name)</string>
+    <string name="pref_menu_key">pref_menu_key</string>
 </resources>

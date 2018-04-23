@@ -3,16 +3,19 @@ package com.sergiocruz.bakingapp.fragments;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -35,27 +38,32 @@ import timber.log.Timber;
 
 public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener {
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
+    public static final String ONLINE = "online";
+    public static final String FAVORITES = "favorites";
     private static final int GRID_SPAN_COUNT = 2;
     private Context mContext;
     private ActivityViewModel viewModel;
     private RecyclerView recyclerView;
     private RecipeAdapter adapter;
     private boolean isTwoPane;
+    private Menu mMenu;
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         View rootView = inflater.inflate(R.layout.fragment_recipe_list, container, false);
 
         mContext = getContext();
 
-        Toolbar toolbar = rootView.findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//        toolbar.setTitle(getTitle());
-        ((TextView) toolbar.findViewById(R.id.toolbar_text)).setShadowLayer(10, 4, 4, R.color.cardview_dark_background);
-
         setHasOptionsMenu(true);
+        android.support.v7.widget.Toolbar toolbar = rootView.findViewById(R.id.toolbar);
+        ((TextView) toolbar.findViewById(R.id.toolbar_text)).setShadowLayer(10, 4, 4, R.color.cardview_dark_background);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
@@ -64,7 +72,18 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         adapter = new RecipeAdapter(this, this, this);
         setupRecyclerView(recyclerView, adapter);
 
-        // Start the ViewModel //TODO favorites
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
+        Boolean favorites;
+
+        if (resourceOnOff.equals(ONLINE)) {
+            favorites = false;
+        } else if (resourceOnOff.equals(FAVORITES)){
+            favorites = true;
+        }
+
+
+        // Start the ViewModel
         viewModel = ActivityViewModel.getInstance(this, false);
         viewModel.getAllRecipes().observe(RecipeListFragment.this, new Observer<List<Recipe>>() {
             /**
@@ -82,11 +101,75 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
             recyclerView.smoothScrollToPosition(position);
         }
 
-
-
         return rootView;
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_options, menu);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        this.mMenu = menu;
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
+        toggleMenuIcon2(resourceOnOff);
+    }
+
+    private void toggleMenuIcon2(String position) {
+        switch (position) {
+            case FAVORITES:
+                mMenu.findItem(R.id.menu_online).setVisible(true);
+                mMenu.findItem(R.id.menu_favorite).setVisible(false);
+                break;
+            case ONLINE:
+                mMenu.findItem(R.id.menu_online).setVisible(false);
+                mMenu.findItem(R.id.menu_favorite).setVisible(true);
+                break;
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        switch (item.getItemId()) {
+            case R.id.menu_online:
+                prefs.edit().putString(getString(R.string.pref_menu_key), ONLINE).apply();
+                toggleMenuIcon2(ONLINE);
+                loadFromInternet();
+                return true;
+            case R.id.menu_favorite:
+                prefs.edit().putString(getString(R.string.pref_menu_key), FAVORITES).apply();
+                toggleMenuIcon2(FAVORITES);
+                loadFromFavorites();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void loadFromFavorites() {
+        viewModel = ActivityViewModel.getInstance(this, true);
+    }
+
+    private void loadFromInternet() {
+        viewModel = ActivityViewModel.getInstance(this, false);
+    }
+
+    private void toggleMenuIcon(String position) {
+        switch (position) {
+            case FAVORITES:
+                getActivity().findViewById(R.id.menu_favorite).setVisibility(View.GONE);
+                getActivity().findViewById(R.id.menu_online).setVisibility(View.VISIBLE);
+                break;
+            case ONLINE:
+                getActivity().findViewById(R.id.menu_favorite).setVisibility(View.VISIBLE);
+                getActivity().findViewById(R.id.menu_online).setVisibility(View.GONE);
+                break;
+        }
+    }
 
     private void setupRecyclerView(RecyclerView recyclerView, RecipeAdapter adapter) {
         if (isTwoPane) {
@@ -96,12 +179,6 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         }
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
     }
 
     @Override

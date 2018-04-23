@@ -64,15 +64,17 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_PLAYING_KEY;
 import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_POSITION_KEY;
-import static com.sergiocruz.bakingapp.utils.AndroidUtils.MimeType.*;
+import static com.sergiocruz.bakingapp.utils.AndroidUtils.MimeType.VIDEO;
 
 public class RecipeStepFragment extends Fragment implements Player.EventListener {
     public static final String MEDIA_SESSION_TAG = "lets_bake_media_session";
     public static final String NOTIFICATION_TAG = "lets_bake_notification_tag";
     public static final int NOTIFICATION_ID = 0x01;
     public static final Integer FULL_SCREEN_REQUEST_CODE = 0x02;
-    public static final String PLAYER_URI_KEY = "key_exoplayer_uri_key";
+    public static final String PLAYER_URI_KEY = "key_exoplayer_uri";
     private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
+    public static final String ENTERING_FULL_SCREEN_KEY = "key_app_entering_full_screen";
+    private static MediaSessionCompat mMediaSession;
     private Context mContext;
     private ActivityViewModel viewModel;
     private List<RecipeStep> stepsList;
@@ -81,7 +83,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private PlayerView exoPlayerView;
     private ImageButton nextButton;
     private ImageButton previousButton;
-    private static MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mPlaybackState;
     private NotificationManager mNotificationManager;
     private SimpleExoPlayer mExoPlayer;
@@ -113,6 +114,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         outState.putParcelable(PLAYER_URI_KEY, mExoPlayerUri);
         outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer == null ? true : mExoPlayer.getPlayWhenReady());
         outState.putLong(PLAYER_POSITION_KEY, mExoPlayer == null ? 0 : mExoPlayer.getCurrentPosition());
+        outState.putBoolean(ENTERING_FULL_SCREEN_KEY, isEnteringFullScreen);
         return outState;
     }
 
@@ -166,9 +168,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
                     "isParentFullScreen " + isParentFullScreen);
             if (!hasSavedState && !isParentFullScreen) {
                 String videoUrl = recipeStep.getVideoUrl();
-                MimeType videoMimeType = AndroidUtils.getMymeTypeFromString(videoUrl);
-
                 Uri videoUri = Uri.parse("");
+                MimeType videoMimeType = AndroidUtils.getMymeTypeFromString(videoUrl);
                 if (videoMimeType == VIDEO) {
                     videoUri = Uri.parse(videoUrl);
                 } else {
@@ -197,8 +198,9 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         super.onViewStateRestored(savedInstanceState);
         if (savedInstanceState != null) {
             mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
-            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
-            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
+            savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY);
+            savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY);
+            isEnteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULL_SCREEN_KEY);
             hasSavedState = true;
             isParentFullScreen = false;
         } else {
@@ -233,7 +235,6 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     @Override
     public void onResume() {
         super.onResume();
-        isEnteringFullScreen = false;
 
         if (hasSavedState) {
             loadAndPlayVideo(mContext, mExoPlayerUri, savedExoPosition, savedIsExoPlaying);
@@ -246,6 +247,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         Boolean isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && !isTwoPane && !isParentFullScreen) {
             enterFullscreen();
+        } else {
+            isEnteringFullScreen = false;
         }
 
 
@@ -274,7 +277,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     private void enterFullscreen() {
         // Don't enter fullscreen if no video selected or empty Uri.
-        if (TextUtils.isEmpty(mExoPlayerUri.toString())) return;
+        if (TextUtils.isEmpty(mExoPlayerUri == null ? null : mExoPlayerUri.toString())) return;
         isEnteringFullScreen = true;
 
         Intent intent = new Intent(mContext, FullScreenActivity.class);
@@ -321,13 +324,22 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     private void updateFragmentUI(RecipeStep recipeStep) {
-        if (stepNumber == -1 || recipeStep == null) {
+        if (stepNumber < 0 || recipeStep == null) {
             stepDetailTV.setText(R.string.select_step);
         } else {
-            stepDetailTV.setText(
-                    getString(R.string.step_number) + " " + stepNumber + "\n" +
-                            recipeStep.getShortDesc() + "\n" +
-                            recipeStep.getDescription());
+            String shortDesc = recipeStep.getShortDesc();
+            String description = recipeStep.getDescription();
+            String text;
+            if (stepNumber == 0) {
+                text = shortDesc.equals(description) ? shortDesc : shortDesc + "\n" + description;
+            } else {
+                String stepNumberTextStr = getString(R.string.step_number);
+                text = shortDesc.equals(description) ?
+                        stepNumberTextStr + " " + stepNumber + "\n" + shortDesc :
+                        stepNumberTextStr + " " + stepNumber + "\n" + shortDesc + "\n" +
+                        description;
+            }
+            stepDetailTV.setText(text);
         }
     }
 
@@ -345,15 +357,15 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
     @Override
     public void onPause() {
-        if (mExoPlayer != null) {
-            // pause on background? If entering full Screen keep playing
-            mExoPlayer.setPlayWhenReady(isEnteringFullScreen);
-        }
         super.onPause();
     }
 
     @Override
     public void onStop() {
+        if (mExoPlayer != null) {
+            // pause on background? If entering full Screen keep playing
+            mExoPlayer.setPlayWhenReady(isEnteringFullScreen);
+        }
         super.onStop();
     }
 

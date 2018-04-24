@@ -1,6 +1,16 @@
 package com.sergiocruz.bakingapp.utils;
 
+import android.content.Context;
+import android.support.v4.content.ContextCompat;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.webkit.MimeTypeMap;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.sergiocruz.bakingapp.R;
 
 public class AndroidUtils {
 
@@ -25,5 +35,23 @@ public class AndroidUtils {
             }
         }
     }
+
+
+    public static void showCustomToast(Context context, String toastText, int icon_RID, int text_color_Res_Id, int duration) {
+        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.custom_toast, null);
+
+        TextView text = layout.findViewById(R.id.toast_layout_text);
+        text.setText(toastText);
+        text.setTextColor(ContextCompat.getColor(context, text_color_Res_Id));
+        ImageView imageV = layout.findViewById(R.id.toast_img);
+        imageV.setImageResource(icon_RID);
+        Toast theCustomToast = new Toast(context);
+        theCustomToast.setGravity(Gravity.CENTER_VERTICAL, 0, 0);
+        theCustomToast.setDuration(duration);
+        theCustomToast.setView(layout);
+        theCustomToast.show();
+    }
+
 
 }

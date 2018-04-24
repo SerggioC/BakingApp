@@ -5,11 +5,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.transition.ChangeBounds;
@@ -55,6 +57,7 @@ import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 import com.sergiocruz.bakingapp.utils.AndroidUtils;
 import com.sergiocruz.bakingapp.utils.AndroidUtils.MimeType;
+import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.List;
 
@@ -64,6 +67,8 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_PLAYING_KEY;
 import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_POSITION_KEY;
+import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.FAVORITES;
+import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.ONLINE;
 import static com.sergiocruz.bakingapp.utils.AndroidUtils.MimeType.VIDEO;
 
 public class RecipeStepFragment extends Fragment implements Player.EventListener {
@@ -154,9 +159,13 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
         setupExoPlayer();
 
-        // TODO favorites
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
+        String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
+        Boolean getFavorites = resourceOnOff.equals(FAVORITES);
+        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(mContext);
+
         if (viewModel == null)
-            viewModel = ActivityViewModel.getInstance(this, false);
+            viewModel = ActivityViewModel.getInstance(this, getFavorites, hasInternet);
 
         stepNumber = viewModel.getRecipeStepNumber().getValue();
 

@@ -56,6 +56,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     private NestedScrollView nestedScrollView;
     private int savedStepPosition = -1;
     private int savedRecyclerViewPosition;
+    private boolean hasSavedState = false;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -71,7 +72,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         // If entering from Widget
         Integer RecipeColumnID = getActivity().getIntent().getIntExtra(EXTRA_WIDGET_RECIPE, INVALID_POSITION);
-        viewModel = ActivityViewModel.getInstance(this, false);
+        viewModel = ActivityViewModel.getInstance(this, true, false);
         if (RecipeColumnID != INVALID_POSITION) {
             new ThreadExecutor().diskIO().execute(() -> {
                 CompleteRecipe completeRecipe = RecipeDatabase.getDatabase(context).recipesDao().getCompleteRecipe(RecipeColumnID);
@@ -91,8 +92,13 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
         viewModel.getRecipeStepNumber().observe(this, stepNumber -> {
-            changeViewHolderOutline(stepNumber);
-            Timber.d("Clicked Recipe number = " + stepNumber);
+            if (!hasSavedState) {
+                savedStepPosition = stepNumber;
+                changeViewHolderOutline(stepNumber);
+                Timber.d("Clicked Recipe number = " + stepNumber);
+                hasSavedState = false;
+            }
+
         });
 
         return rootView;
@@ -116,27 +122,22 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         if (savedInstanceState != null) {
             savedRecyclerViewPosition = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
             savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_POSITION);
+            hasSavedState = true;
+        } else {
+            hasSavedState = false;
         }
+
         nestedScrollView = rootView.findViewById(R.id.nested_scroll_view);
         nestedScrollView.setFocusableInTouchMode(true);
         nestedScrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS); // Scroll to top
     }
 
-    //if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
+    // if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
     // Update Recipe step outline after the recyclerview has drawn
     private void setLayoutObserver() {
         recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                if (viewModel != null) {
-                    Integer stepnumber = viewModel.getRecipeStepNumber().getValue();
-                    if (stepnumber != null) {
-                        savedStepPosition = stepnumber;
-                        savedRecyclerViewPosition = stepnumber + 1;
-                    }
-
-                }
-
                 changeViewHolderOutline(savedStepPosition);
                 recyclerView.smoothScrollToPosition(savedRecyclerViewPosition);
                 recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
@@ -148,11 +149,13 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     public void onSaveInstanceState(Bundle currentState) {
         Timber.i("savedStepPosition= " + savedStepPosition);
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
-        currentState.putInt(RECIPE_STEP_POSITION, viewModel.getRecipeStepNumber().getValue());
+        currentState.putInt(RECIPE_STEP_POSITION, savedStepPosition);
     }
 
     @Override
     public void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked) {
+        hasSavedState = false;
+        savedStepPosition = stepClicked;
         viewModel.setRecipeStepNumber(stepClicked);
         viewModel.setRecipeStep(recipeStep);
 

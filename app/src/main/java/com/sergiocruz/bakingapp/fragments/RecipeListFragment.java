@@ -31,6 +31,8 @@ import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
+import com.sergiocruz.bakingapp.utils.AndroidUtils;
+import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.List;
 
@@ -74,26 +76,18 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
-        Boolean favorites;
-
-        if (resourceOnOff.equals(ONLINE)) {
-            favorites = false;
-        } else if (resourceOnOff.equals(FAVORITES)){
-            favorites = true;
-        }
-
+        Boolean getFavorites = resourceOnOff.equals(FAVORITES);
+        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(mContext);
 
         // Start the ViewModel
-        viewModel = ActivityViewModel.getInstance(this, false);
+        viewModel = ActivityViewModel.getInstance(this, getFavorites, hasInternet);
         viewModel.getAllRecipes().observe(RecipeListFragment.this, new Observer<List<Recipe>>() {
-            /**
-             * Called when the data is changed.
-             * @param recipesList The new data */
+            /** Called when the data has changed.
+             *  @param recipesList The new data */
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
                 adapter.swapRecipesData(recipesList);
             }
-
         });
 
         if (savedInstanceState != null) {
@@ -115,10 +109,10 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         this.mMenu = menu;
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
-        toggleMenuIcon2(resourceOnOff);
+        toggleMenuIcon(resourceOnOff);
     }
 
-    private void toggleMenuIcon2(String position) {
+    private void toggleMenuIcon(String position) {
         switch (position) {
             case FAVORITES:
                 mMenu.findItem(R.id.menu_online).setVisible(true);
@@ -137,12 +131,12 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         switch (item.getItemId()) {
             case R.id.menu_online:
                 prefs.edit().putString(getString(R.string.pref_menu_key), ONLINE).apply();
-                toggleMenuIcon2(ONLINE);
+                toggleMenuIcon(ONLINE);
                 loadFromInternet();
                 return true;
             case R.id.menu_favorite:
                 prefs.edit().putString(getString(R.string.pref_menu_key), FAVORITES).apply();
-                toggleMenuIcon2(FAVORITES);
+                toggleMenuIcon(FAVORITES);
                 loadFromFavorites();
                 return true;
             default:
@@ -151,14 +145,23 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
     }
 
     private void loadFromFavorites() {
-        viewModel = ActivityViewModel.getInstance(this, true);
+        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(mContext);
+        viewModel.updateData(true, hasInternet);
     }
 
     private void loadFromInternet() {
-        viewModel = ActivityViewModel.getInstance(this, false);
+        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(mContext);
+        viewModel.updateData(false, hasInternet);
+
+        if (!hasInternet) {
+            AndroidUtils.showCustomToast(mContext,
+                    getString(R.string.working_offline),
+                    R.mipmap.ic_info, R.color.blue, Toast.LENGTH_LONG);
+        }
+
     }
 
-    private void toggleMenuIcon(String position) {
+    private void toggleMenuIcon1(String position) {
         switch (position) {
             case FAVORITES:
                 getActivity().findViewById(R.id.menu_favorite).setVisibility(View.GONE);

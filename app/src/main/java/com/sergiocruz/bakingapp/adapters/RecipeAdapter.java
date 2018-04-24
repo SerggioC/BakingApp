@@ -31,6 +31,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     public void swapRecipesData(List<Recipe> recipesList) {
+        if (this.recipesList == recipesList) return;
         this.recipesList = recipesList;
         notifyDataSetChanged();
     }

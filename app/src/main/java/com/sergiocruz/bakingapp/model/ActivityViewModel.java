@@ -14,46 +14,53 @@ import java.util.List;
 public class ActivityViewModel extends AndroidViewModel {
     private static ActivityViewModel INSTANCE;
     private RecipesDataRepository dataRepository;
-    private LiveData<List<Recipe>> recipesList;
 
-    private static MutableLiveData<Recipe> recipe;
-    private static MutableLiveData<RecipeStep> recipeStep;
-    private static MutableLiveData<Integer> recipeStepNumber;
+    private MutableLiveData<List<Recipe>> recipesList;
+    private MutableLiveData<Recipe> recipe;
+    private MutableLiveData<RecipeStep> recipeStep;
+    private MutableLiveData<Integer> recipeStepNumber;
 
     private static Boolean thisGetFavorites;
+    private static Boolean thisHasInternet;
 
     public ActivityViewModel(@NonNull Application application) {
         super(application);
+        initMutableLiveData();
         this.dataRepository = new RecipesDataRepository(getApplication().getApplicationContext());
-        this.recipesList = dataRepository.getData(thisGetFavorites);
+        updateData(thisGetFavorites, thisHasInternet);
     }
 
-    public static ActivityViewModel getInstance(Fragment fragment, Boolean getFavorites) {
+    public static ActivityViewModel getInstance(Fragment fragment, Boolean getFavorites, Boolean hasInternet) {
         thisGetFavorites = getFavorites;
+        thisHasInternet = hasInternet;
         if (INSTANCE == null) {
             INSTANCE = ViewModelProviders.of(fragment).get(ActivityViewModel.class);
-            initMutableLiveData();
         }
         return INSTANCE;
     }
 
-    public static ActivityViewModel getInstance(AppCompatActivity activity, Boolean getFavorites) {
+    public void updateData(Boolean getFavorites, Boolean hasInternet) {
+        this.recipesList = dataRepository.getData(getFavorites, hasInternet);
+    }
+
+    public static ActivityViewModel getInstance(AppCompatActivity activity, Boolean getFavorites, Boolean hasInternet) {
         thisGetFavorites = getFavorites;
+        thisHasInternet = hasInternet;
         if (INSTANCE == null) {
             INSTANCE = ViewModelProviders.of(activity).get(ActivityViewModel.class);
-            initMutableLiveData();
         }
         return INSTANCE;
     }
 
-    public static void initMutableLiveData() {
+    public void initMutableLiveData() {
+        if (recipesList == null) recipesList = new MutableLiveData<>();
         if (recipe == null) recipe = new MutableLiveData<>();
         if (recipeStep == null) recipeStep = new MutableLiveData<>();
         if (recipeStepNumber == null) recipeStepNumber = new MutableLiveData<>();
         recipeStepNumber.setValue(-1);
     }
 
-    public LiveData<List<Recipe>> getAllRecipes() {
+    public MutableLiveData<List<Recipe>> getAllRecipes() {
         return recipesList;
     }
 
@@ -86,6 +93,5 @@ public class ActivityViewModel extends AndroidViewModel {
     public void setRecipeStepNumber(Integer recipeStepNumber) {
         this.recipeStepNumber.setValue(recipeStepNumber);
     }
-
 
 }

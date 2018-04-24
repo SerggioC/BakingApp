@@ -1,13 +1,11 @@
 package com.sergiocruz.bakingapp.model;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.Context;
 
 import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
 import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
-import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.List;
 
@@ -17,29 +15,20 @@ import retrofit2.Response;
 import timber.log.Timber;
 
 public class RecipesDataRepository {
-    private final Context context;
-
-    // Repository controlling Online/Local Database data switching
-    RecipeApiController webservice;
-    RecipeDatabase recipeDatabase;
+    // Repository controlling Online webService/Local Database data switching
+    private RecipeApiController webService;
+    private MutableLiveData<List<Recipe>> data = new MutableLiveData<>();
+    private RecipeDatabase recipeDatabase;
 
     public RecipesDataRepository(Context context) {
-        this.context = context;
-        this.webservice = new RecipeApiController();
+        this.recipeDatabase = RecipeDatabase.getDatabase(context);
+        this.webService = new RecipeApiController();
     }
 
-
-    public LiveData<List<Recipe>> getData(Boolean getFavorites) {
-
-        final MutableLiveData<List<Recipe>> data = new MutableLiveData<>();
-
-        recipeDatabase = RecipeDatabase.getDatabase(context);
-
-        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(context);
-
+    public MutableLiveData<List<Recipe>> getData(Boolean getFavorites, Boolean hasInternet) {
         ThreadExecutor threadExecutor = new ThreadExecutor();
 
-        if (hasInternet) {
+        if (hasInternet && !getFavorites) {
             threadExecutor.networkIO().execute(() -> getDataFromNetwork(data));
         } else if (!hasInternet || getFavorites) {
             threadExecutor.diskIO().execute(() -> getFavoritesFromDB(data));
@@ -55,22 +44,22 @@ public class RecipesDataRepository {
     }
 
     private void getDataFromNetwork(MutableLiveData<List<Recipe>> data) {
-        webservice.getApiController().getRecipes("baking.json").enqueue(new Callback<List<Recipe>>() {
+        webService.getApiController().getRecipes("baking.json").enqueue(new Callback<List<Recipe>>() {
 
             @Override
             public void onResponse(Call<List<Recipe>> call, Response<List<Recipe>> response) {
                 if (response.isSuccessful()) {
                     List<Recipe> recipesList = response.body();
-                    data.setValue(recipesList);
+                    data.postValue(recipesList);
                 } else {
-                    data.setValue(null);
+                    data.postValue(null);
                     Timber.w("Wrong response on Api Call= " + call.toString() + " " + response.errorBody());
                 }
             }
 
             @Override
             public void onFailure(Call<List<Recipe>> call, Throwable t) {
-                data.setValue(null);
+                data.postValue(null);
                 Timber.w(t, "Fail on Api Call= " + call.toString());
             }
         });

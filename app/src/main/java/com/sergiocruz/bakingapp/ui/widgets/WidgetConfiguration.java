@@ -15,7 +15,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewTreeObserver;
-import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +25,7 @@ import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.utils.AndroidUtils;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.FAVORITES;
@@ -35,7 +35,8 @@ import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIE
 
 public class WidgetConfiguration extends AppCompatActivity implements RecipeAdapter.RecipeClickListener {
     public static final String PREFERENCE_FILE_NAME = "bakingapp_widget_preference";
-    public static final String PREFERENCE_PREFIX = "recipe_widget_id_column_id_";
+    public static final String PREFERENCE_PREFIX = "widget_id_";
+    public static final int INVALID_VALUE = -1;
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     private WidgetConfiguration mContext;
     private RecyclerView recyclerView;
@@ -46,6 +47,41 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
     public WidgetConfiguration() {
         super();
+    }
+
+    // Write the prefix to the SharedPreferences object for this widget
+    static void saveToPreferences(Context context, int appWidgetId, Integer recipeColumnId) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE).edit();
+        prefs.putInt(PREFERENCE_PREFIX + appWidgetId, recipeColumnId);
+        prefs.commit();
+    }
+
+    // Delete this column id from the SharedPreferences object for this widget
+    static void deleteFromPreferences(Context context, int[] appWidgetIds) {
+        for (int i = 0; i < appWidgetIds.length; i++) {
+            SharedPreferences.Editor prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE).edit();
+            prefs.remove(PREFERENCE_PREFIX + appWidgetIds[i]);
+            prefs.commit();
+        }
+    }
+
+    // get all column ids from preferences
+    static List<Integer> loadAllFromPreferences(Context context, int[] appWidgetIds) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE);
+        int length = appWidgetIds.length;
+        List<Integer> columnIdList = new ArrayList<>(length);
+        for (int i = 0; i < length; i++) {
+            columnIdList.add(prefs.getInt(PREFERENCE_PREFIX + appWidgetIds[i], INVALID_VALUE));
+        }
+        return columnIdList;
+    }
+
+
+    // Read the prefix from the SharedPreferences object for this widget.
+    // If there is no preference saved, get the default from a resource
+    static Integer loadFromPreferences(Context context, int appWidgetId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE);
+        return prefs.getInt(PREFERENCE_PREFIX + appWidgetId, INVALID_VALUE);
     }
 
     @Override
@@ -67,7 +103,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
         android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         ((TextView) toolbar.findViewById(R.id.toolbar_text)).setShadowLayer(10, 4, 4, R.color.cardview_dark_background);
-
+        setSupportActionBar(toolbar);
 
         recyclerView = findViewById(R.id.recipe_list_recyclerview);
 
@@ -108,32 +144,19 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
     }
 
-    private void saveWidgetConfiguration(Integer recipeColumnId) {
+    private void saveWidgetConfiguration(Recipe recipe) {
 
-        saveToPreferences(this, mAppWidgetId, recipeColumnId);
+        // Save the appWidgetId to preferences + recipeColumnId
+        saveToPreferences(this, mAppWidgetId, recipe.getColumnId());
 
+        // Update the widget on screen
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
-        RemoteViews views = new RemoteViews(this.getPackageName(), R.layout.recipe_widget_layout);
-        appWidgetManager.updateAppWidget(mAppWidgetId, views);
+        RecipeWidgetProvider.updateRecipeAppWidget(this, appWidgetManager, recipe, mAppWidgetId);
 
         Intent resultValue = new Intent();
         resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
         setResult(RESULT_OK, resultValue);
         finish();
-    }
-
-    // Write the prefix to the SharedPreferences object for this widget
-    static void saveToPreferences(Context context, int appWidgetId, Integer recipeColumnId) {
-        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE).edit();
-        prefs.putInt(PREFERENCE_PREFIX + appWidgetId, recipeColumnId);
-        prefs.commit();
-    }
-
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    static Integer loadFromPreferences(Context context, int appWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE);
-        return prefs.getInt(PREFERENCE_PREFIX + appWidgetId, 0);
     }
 
     @Override
@@ -147,7 +170,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
     @Override
     public void onRecipeClicked(Recipe recipe) {
-        saveWidgetConfiguration(recipe.getColumnId());
+        saveWidgetConfiguration(recipe);
     }
 
 
@@ -220,7 +243,6 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
         }
         toggleMenuIcon(hasInternet ? ONLINE : FAVORITES);
     }
-
 
 
 }

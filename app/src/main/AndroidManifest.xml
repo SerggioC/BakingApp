@@ -46,7 +46,9 @@
                 android:value=".activities.RecipeDetailActivity"/>
         </activity>
 
-        <activity android:name="com.sergiocruz.bakingapp.ui.widgets.WidgetConfiguration">
+        <activity android:name="com.sergiocruz.bakingapp.ui.widgets.WidgetConfiguration"
+                  android:label="@string/app_name"
+                  android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
@@ -69,11 +71,7 @@
                 android:resource="@xml/recipe_widget_info"/>
         </receiver>
 
-        <service
-            android:name=".ui.widgets.GridWidgetService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"/>
 
-        <service android:name=".ui.widgets.PlantWateringService"/>
 
 
     </application>

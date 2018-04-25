@@ -46,6 +46,12 @@
                 android:value=".activities.RecipeDetailActivity"/>
         </activity>
 
+        <activity android:name="com.sergiocruz.bakingapp.ui.widgets.WidgetConfiguration">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+
         <receiver android:name=".fragments.RecipeStepFragment$MediaReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>

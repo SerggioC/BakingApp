@@ -37,23 +37,20 @@ import com.sergiocruz.bakingapp.model.Ingredient;
 import java.util.List;
 
 public class RecipeWidgetProvider extends AppWidgetProvider {
-
+    // Start the intent service update widget action,
+    // the service takes care of updating the widgets UI
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-        // Start the intent service update widget action,
-        // the service takes care of updating the widgets UI
-
         RecipeDatabase db = RecipeDatabase.getDatabase(context);
 
-        new ThreadExecutor().diskIO().execute(() -> {
-            List<CompleteRecipe> completeRecipesList = db.recipesDao().getFavoriteCompleteRecipeList();
-            CompleteRecipe recipe = completeRecipesList.get(0);
-
-            new ThreadExecutor().mainThread().execute(() -> updateRecipeWidgets(context, appWidgetManager, recipe, appWidgetIds));
-        });
-
-
-        //PlantWateringService.startActionUpdatePlantWidgets(context);
+        for (int i = 0; i < appWidgetIds.length; i++) {
+            Integer recipeColumnId = WidgetConfiguration.loadFromPreferences(context, appWidgetIds[i]);
+            new ThreadExecutor().diskIO().execute(() -> {
+                CompleteRecipe completeRecipe = db.recipesDao().getCompleteRecipeFromColumnId(recipeColumnId);
+                new ThreadExecutor().mainThread().execute(() ->
+                        updateRecipeWidgets(context, appWidgetManager, completeRecipe, appWidgetIds));
+            });
+        }
     }
 
     @Override
@@ -109,7 +106,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget_layout);
 
         // Update Recipe image, recipe name and ingredients
         String recipeImageUrl = recipe != null ? recipe.getRecipe().getRecipeImage() : null;

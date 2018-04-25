@@ -1,5 +1,6 @@
-package com.sergiocruz.bakingapp.fragments;
+package com.sergiocruz.bakingapp.ui.widgets;
 
+import android.appwidget.AppWidgetManager;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
@@ -7,27 +8,19 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.RemoteViews;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sergiocruz.bakingapp.R;
-import com.sergiocruz.bakingapp.ThreadExecutor;
-import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
-import com.sergiocruz.bakingapp.database.RecipeDatabase;
-import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.utils.AndroidUtils;
@@ -35,54 +28,67 @@ import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.List;
 
-import timber.log.Timber;
+import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.FAVORITES;
+import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.GRID_SPAN_COUNT;
+import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.ONLINE;
+import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIEW_POSITION;
 
-public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener {
-    public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
-    public static final String ONLINE = "online";
-    public static final String FAVORITES = "favorites";
-    public static final int GRID_SPAN_COUNT = 2;
-    private Context mContext;
-    private ActivityViewModel viewModel;
+public class WidgetConfiguration extends AppCompatActivity implements RecipeAdapter.RecipeClickListener {
+    public static final String PREFERENCE_FILE_NAME = "bakingapp_widget_preference";
+    public static final String PREFERENCE_PREFIX = "recipe_widget_id_column_id_";
+    private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+    private WidgetConfiguration mContext;
     private RecyclerView recyclerView;
-    private RecipeAdapter adapter;
     private boolean isTwoPane;
+    private RecipeAdapter adapter;
+    private ActivityViewModel viewModel;
     private Menu mMenu;
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public WidgetConfiguration() {
+        super();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        View rootView = inflater.inflate(R.layout.fragment_recipe_list, container, false);
+        setContentView(R.layout.fragment_recipe_list);
 
-        mContext = getContext();
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        if (extras != null) {
+            mAppWidgetId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+        }
+        // If they gave us an intent without the widget id, finish();
+        if (mAppWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            finish();
+        }
 
-        setHasOptionsMenu(true);
-        android.support.v7.widget.Toolbar toolbar = rootView.findViewById(R.id.toolbar);
+        mContext = this;
+
+        android.support.v7.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         ((TextView) toolbar.findViewById(R.id.toolbar_text)).setShadowLayer(10, 4, 4, R.color.cardview_dark_background);
-        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+
+
+        recyclerView = findViewById(R.id.recipe_list_recyclerview);
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
-
-        recyclerView = rootView.findViewById(R.id.recipe_list_recyclerview);
-
-        adapter = new RecipeAdapter(this, this, this);
-        setupRecyclerView(recyclerView, adapter);
+        if (isTwoPane) {
+            recyclerView.setLayoutManager(new GridLayoutManager(mContext, GRID_SPAN_COUNT, GridLayoutManager.VERTICAL, false));
+        } else {
+            recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
+        }
+        recyclerView.setHasFixedSize(true);
+        adapter = new RecipeAdapter(this, null, null);
+        recyclerView.setAdapter(adapter);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
         Boolean getFavorites = resourceOnOff.equals(FAVORITES);
-        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(mContext);
+        Boolean hasInternet = NetworkUtils.hasActiveNetworkConnection(this);
 
         // Start the ViewModel
         viewModel = ActivityViewModel.getInstance(this, getFavorites, hasInternet);
-        viewModel.getAllRecipes().observe(RecipeListFragment.this, new Observer<List<Recipe>>() {
-            /** Called when the data has changed.
-             *  @param recipesList The new data */
+        viewModel.getAllRecipes().observe(WidgetConfiguration.this, new Observer<List<Recipe>>() {
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
                 adapter.swapRecipesData(recipesList);
@@ -100,26 +106,71 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
             });
         }
 
-        return rootView;
+    }
+
+    private void saveWidgetConfiguration(Integer recipeColumnId) {
+
+        saveToPreferences(this, mAppWidgetId, recipeColumnId);
+
+        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+        RemoteViews views = new RemoteViews(this.getPackageName(), R.layout.recipe_widget_layout);
+        appWidgetManager.updateAppWidget(mAppWidgetId, views);
+
+        Intent resultValue = new Intent();
+        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+        setResult(RESULT_OK, resultValue);
+        finish();
+    }
+
+    // Write the prefix to the SharedPreferences object for this widget
+    static void saveToPreferences(Context context, int appWidgetId, Integer recipeColumnId) {
+        SharedPreferences.Editor prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE).edit();
+        prefs.putInt(PREFERENCE_PREFIX + appWidgetId, recipeColumnId);
+        prefs.commit();
+    }
+
+    // Read the prefix from the SharedPreferences object for this widget.
+    // If there is no preference saved, get the default from a resource
+    static Integer loadFromPreferences(Context context, int appWidgetId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE);
+        return prefs.getInt(PREFERENCE_PREFIX + appWidgetId, 0);
     }
 
     @Override
+    public void onBackPressed() {
+        Intent resultValue = new Intent();
+        resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+        setResult(RESULT_CANCELED, resultValue);
+        finish();
+        super.onBackPressed();
+    }
+
+    @Override
+    public void onRecipeClicked(Recipe recipe) {
+        saveWidgetConfiguration(recipe.getColumnId());
+    }
+
+
+    @Override
     public void onSaveInstanceState(Bundle currentState) {
+        super.onSaveInstanceState(currentState);
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_options, menu);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_options, menu);
+        return true;
     }
 
     @Override
-    public void onPrepareOptionsMenu(Menu menu) {
+    public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
         this.mMenu = menu;
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         String resourceOnOff = prefs.getString(getString(R.string.pref_menu_key), ONLINE);
         toggleMenuIcon(resourceOnOff);
+        return true;
     }
 
     private void toggleMenuIcon(String position) {
@@ -170,51 +221,6 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         toggleMenuIcon(hasInternet ? ONLINE : FAVORITES);
     }
 
-    private void setupRecyclerView(RecyclerView recyclerView, RecipeAdapter adapter) {
-        if (isTwoPane) {
-            recyclerView.setLayoutManager(new GridLayoutManager(mContext, GRID_SPAN_COUNT, GridLayoutManager.VERTICAL, false));
-        } else {
-            recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
-        }
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setAdapter(adapter);
-    }
 
-    @Override
-    public void onRecipeClicked(Recipe recipe) {
-        // start Detail Activity with the recipe details
-        // Sends the complete Selected Recipe
-        Intent intent = new Intent(mContext, RecipeDetailActivity.class);
-        startActivity(intent);
-        viewModel.setRecipe(recipe);
-
-        Timber.d(recipe.getRecipeName());
-    }
-
-    @Override
-    public void onFavoriteClicked(Recipe recipe, int position) {
-        Integer isFavorite = recipe.getIsFavorite();
-        if (isFavorite == null || isFavorite == 0) { // if not favorite make it favorite
-            // Save Favorite recipe to database
-            new ThreadExecutor().diskIO().execute(() ->
-                    RecipeTypeConverter.saveRecipeToDB(recipe, mContext));
-        } else {
-            Toast.makeText(mContext, R.string.already_saved, Toast.LENGTH_LONG).show();
-        }
-    }
-
-
-    @Override
-    public void onFavoriteLongClicked(Recipe recipe, int position) {
-        Integer isFavorite = recipe.getIsFavorite();
-        if (isFavorite != null) { // if it's a favorite remove it from favorites
-            if (isFavorite == 1) {
-                new ThreadExecutor().diskIO().execute(() ->
-                        RecipeDatabase.getDatabase(mContext).recipesDao().deleteRecipeByColumnId(recipe.getColumnId()));
-            }
-        } else {
-            Toast.makeText(mContext, R.string.click_to_save, Toast.LENGTH_LONG).show();
-        }
-    }
 
 }

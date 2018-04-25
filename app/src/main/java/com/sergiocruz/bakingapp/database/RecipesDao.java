@@ -45,12 +45,15 @@ public interface RecipesDao {
     @Query("SELECT columnId FROM Recipe WHERE timeStamp = :timeStamp")
     Integer getColumnIdFromTimeStamp(long timeStamp);
 
-
     @Transaction
     @Query("SELECT * from Recipe where isFavorite = 1 ORDER BY timeStamp DESC")
     List<CompleteRecipe> getFavoriteCompleteRecipeList();
 
-    @TypeConverters(RecipeTypeConverter.class)
+    @Transaction
+    @Query("SELECT * from Recipe where isFavorite = 1 AND columnId = :columnId")
+    CompleteRecipe getCompleteRecipeFromColumnId(Integer columnId);
+
+    @TypeConverters(RecipeTypeConverter.class) //won't work
     @Transaction
     @Query("SELECT * from Recipe where isFavorite = 1 ORDER BY timeStamp DESC")
     List<CompleteRecipe> getFavoriteRecipeListTypeConverted();

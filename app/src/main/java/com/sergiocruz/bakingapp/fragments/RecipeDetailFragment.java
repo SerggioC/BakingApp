@@ -122,6 +122,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         if (savedInstanceState != null) {
             savedRecyclerViewPosition = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
             savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_POSITION);
+            viewModel.setRecipeStepNumber(savedStepPosition);
             hasSavedState = true;
         } else {
             hasSavedState = false;

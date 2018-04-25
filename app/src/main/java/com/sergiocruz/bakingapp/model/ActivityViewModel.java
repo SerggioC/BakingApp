@@ -23,6 +23,7 @@ public class ActivityViewModel extends AndroidViewModel {
     private static Boolean thisGetFavorites;
     private static Boolean thisHasInternet;
 
+    // 2nd in order call
     public ActivityViewModel(@NonNull Application application) {
         super(application);
         initMutableLiveData();
@@ -30,6 +31,7 @@ public class ActivityViewModel extends AndroidViewModel {
         updateData(thisGetFavorites, thisHasInternet);
     }
 
+    // 1st call
     public static ActivityViewModel getInstance(Fragment fragment, Boolean getFavorites, Boolean hasInternet) {
         thisGetFavorites = getFavorites;
         thisHasInternet = hasInternet;
@@ -63,7 +65,6 @@ public class ActivityViewModel extends AndroidViewModel {
     public MutableLiveData<List<Recipe>> getAllRecipes() {
         return recipesList;
     }
-
 
     public void setRecipe(Recipe recipe) {
         this.recipe.setValue(recipe);

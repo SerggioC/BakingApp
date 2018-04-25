@@ -15,5 +15,7 @@
     <string name="no_name_recipe">(No Recipe Name)</string>
     <string name="pref_menu_key">pref_menu_key</string>
     <string name="information_icon">Information Icon</string>
-    <string name="working_offline">No connection available Working Offline</string>
+    <string name="working_offline">No connection available \n Working Offline</string>
+    <string name="already_saved">Already in Favorites</string>
+    <string name="click_to_save">Click to add to favorites</string>
 </resources>

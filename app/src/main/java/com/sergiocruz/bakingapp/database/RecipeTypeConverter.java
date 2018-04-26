@@ -24,21 +24,22 @@ public class RecipeTypeConverter {
 
     @TypeConverter
     public static Recipe convertToRecipe(CompleteRecipe completeRecipe) {
-            Recipe newRecipe = new Recipe(
-                    completeRecipe.getRecipe().getColumnId(),
-                    completeRecipe.getRecipe().getRecipeId(),
-                    completeRecipe.getRecipe().getRecipeName(),
-                    completeRecipe.getIngredientList(),
-                    completeRecipe.getRecipeStepList(),
-                    completeRecipe.getRecipe().getServings(),
-                    completeRecipe.getRecipe().getRecipeImage(),
-                    completeRecipe.getRecipe().getIsFavorite(),
-                    completeRecipe.getRecipe().getTimeStamp()
-            );
+        if (completeRecipe == null) return null;
+        Recipe newRecipe = new Recipe(
+                completeRecipe.getRecipe().getColumnId(),
+                completeRecipe.getRecipe().getRecipeId(),
+                completeRecipe.getRecipe().getRecipeName(),
+                completeRecipe.getIngredientList(),
+                completeRecipe.getRecipeStepList(),
+                completeRecipe.getRecipe().getServings(),
+                completeRecipe.getRecipe().getRecipeImage(),
+                completeRecipe.getRecipe().getIsFavorite(),
+                completeRecipe.getRecipe().getTimeStamp()
+        );
         return newRecipe;
     }
 
-    public static void saveRecipeToDB(Recipe recipe, Context context) {
+    public static Integer saveRecipeToDB(Recipe recipe, Context context) {
         RecipesDao recipesDao = RecipeDatabase.getDatabase(context).recipesDao();
 
         recipe.setIsFavorite(1);
@@ -60,6 +61,6 @@ public class RecipeTypeConverter {
             recipeStep.setRecipeId(columnId);
             recipesDao.addStep(recipeStep);
         }
+        return columnId;
     }
-
 }

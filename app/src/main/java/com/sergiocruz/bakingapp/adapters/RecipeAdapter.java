@@ -75,7 +75,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     public interface FavoriteClickListener {
-        void onFavoriteClicked(Recipe recipe, int position1);
+        void onFavoriteClicked(Recipe recipe, int position);
     }
 
     public interface FavoriteLongClickListener {

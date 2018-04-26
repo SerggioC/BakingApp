@@ -69,6 +69,9 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/recipe_widget_info"/>
+
+            <meta-data android:name="LauncherMetadata.Requirements.Scrollable"
+                       android:value="true" />
         </receiver>
 
 

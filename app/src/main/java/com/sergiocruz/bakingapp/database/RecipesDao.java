@@ -22,8 +22,8 @@ public interface RecipesDao {
     @Query("SELECT * FROM Recipe")
     List<Recipe> getAllRecipes();
 
-    @Query("select * from Recipe where recipeId = :id")
-    Recipe getRecipeById(String id);
+    @Query("select * from Recipe where columnId = :id")
+    Recipe getRecipeByColumnId(Integer id);
 
     @Query("SELECT * from Ingredient where recipeId = :id")
     List<Ingredient> getIngredientsForRecipeId(Integer id);

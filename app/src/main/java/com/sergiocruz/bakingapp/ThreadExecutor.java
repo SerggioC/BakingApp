@@ -22,16 +22,14 @@ public class ThreadExecutor {
 
     private final Executor mainThread;
 
-    public ThreadExecutor(Executor diskIO, Executor networkIO, Executor mainThread) {
+    private ThreadExecutor(Executor diskIO, Executor networkIO, Executor mainThread) {
         this.diskIO = diskIO;
         this.networkIO = networkIO;
         this.mainThread = mainThread;
     }
 
     public ThreadExecutor() {
-        this(Executors.newSingleThreadExecutor(),
-                Executors.newFixedThreadPool(3),
-                new MainThreadExecutor());
+        this(Executors.newSingleThreadExecutor(), Executors.newFixedThreadPool(3), new MainThreadExecutor());
     }
 
     public Executor diskIO() {

@@ -18,4 +18,5 @@
     <string name="working_offline">No connection available \n Working Offline</string>
     <string name="already_saved">Already in Favorites</string>
     <string name="click_to_save">Click to add to favorites</string>
+    <string name="select_recipe">Select recipe to display as a widget</string>
 </resources>

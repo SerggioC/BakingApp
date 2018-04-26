@@ -19,7 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
+import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.utils.AndroidUtils;
@@ -33,7 +35,7 @@ import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.GRID_SPAN_CO
 import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.ONLINE;
 import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIEW_POSITION;
 
-public class WidgetConfiguration extends AppCompatActivity implements RecipeAdapter.RecipeClickListener {
+public class WidgetConfiguration extends AppCompatActivity implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener {
     public static final String PREFERENCE_FILE_NAME = "bakingapp_widget_preference";
     public static final String PREFERENCE_PREFIX = "widget_id_";
     public static final int INVALID_VALUE = -1;
@@ -87,7 +89,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.fragment_recipe_list);
+        setContentView(R.layout.widget_configuration_layout);
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
@@ -114,7 +116,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }
         recyclerView.setHasFixedSize(true);
-        adapter = new RecipeAdapter(this, null, null);
+        adapter = new RecipeAdapter(this, this, this);
         recyclerView.setAdapter(adapter);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -146,7 +148,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
     private void saveWidgetConfiguration(Recipe recipe) {
 
-        // Save the appWidgetId to preferences + recipeColumnId
+        // Save the appWidgetId to preferences with associated recipeColumnId
         saveToPreferences(this, mAppWidgetId, recipe.getColumnId());
 
         // Update the widget on screen
@@ -170,9 +172,33 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
     @Override
     public void onRecipeClicked(Recipe recipe) {
-        saveWidgetConfiguration(recipe);
+        checkIfFavorite(recipe);
     }
 
+    private void checkIfFavorite(Recipe recipe) {
+        Integer isFavorite = recipe.getIsFavorite();
+        if (isFavorite == null || isFavorite == 0) { // if not favorite make it favorite
+            new ThreadExecutor().diskIO().execute(() -> {
+
+                // Save the recipe to database and get its columnId
+                Integer columnId = RecipeTypeConverter.saveRecipeToDB(recipe, mContext);
+
+                // Set it to the Recipe Object
+                recipe.setColumnId(columnId);
+
+                // Save the widget configuration
+                new ThreadExecutor().mainThread().execute(() ->
+                        saveWidgetConfiguration(recipe));
+            });
+        } else {
+            saveWidgetConfiguration(recipe);
+        }
+    }
+
+    @Override
+    public void onFavoriteClicked(Recipe recipe, int position) {
+        checkIfFavorite(recipe);
+    }
 
     @Override
     public void onSaveInstanceState(Bundle currentState) {
@@ -244,5 +270,8 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
         toggleMenuIcon(hasInternet ? ONLINE : FAVORITES);
     }
 
-
+    @Override
+    public void onFavoriteLongClicked(Recipe recipe, int position) {
+        // Do nothing
+    }
 }

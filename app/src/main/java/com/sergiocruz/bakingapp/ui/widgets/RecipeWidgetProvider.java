@@ -53,22 +53,23 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         // Construct the RemoteViews object.  It takes the package name (in our case, it's our
         // package, but it needs this because on the other side it's the widget host inflating
         // the layout from our package).
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.recipe_widget_layout);
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.recipe_widget_layout);
 
         // Update Recipe image, recipe name and ingredients
         String recipeImageUrl = recipe != null ? recipe.getRecipeImage() : null;
         if (TextUtils.isEmpty(recipeImageUrl)) {
-            views.setImageViewResource(R.id.widget_image_background, R.mipmap.ic_launcher);
+            remoteViews.setImageViewResource(R.id.widget_image_background, R.mipmap.ic_launcher);
         } else {
-            views.setImageViewUri(R.id.widget_image_background, Uri.parse(recipeImageUrl));
+            remoteViews.setImageViewUri(R.id.widget_image_background, Uri.parse(recipeImageUrl));
         }
-        views.setTextViewText(R.id.widget_recipe_name, recipe != null ? recipe.getRecipeName() : context.getString(R.string.app_name));
-        views.setTextViewText(R.id.widget_recipe_ingredients, getFormattedIngredientList(recipe != null ? recipe.getIngredientsList() : null));
+        remoteViews.setTextViewText(R.id.widget_recipe_name, recipe == null ? context.getString(R.string.app_name) :
+                recipe.getRecipeName() + " " + context.getString(R.string.ingredients));
+        remoteViews.setTextViewText(R.id.widget_recipe_ingredients, getFormattedIngredientList(recipe != null ? recipe.getIngredientsList() : null));
 
         // Widgets allow click handlers to only launch pending intents
-        views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
+        remoteViews.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
 
-        return views;
+        return remoteViews;
     }
 
     private static String getFormattedIngredientList(List<Ingredient> ingredientList) {
@@ -87,6 +88,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
 
     // Start the intent service update widget action,
     // the service takes care of updating the widgets UI
+    // Called every updatePeriodMillis milliseconds
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
@@ -114,13 +116,18 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
             }
         }.execute();
 
+
+
     }
 
+    // This is called when the widget is first placed
+    // and any time the widget is resized.
     @Override
     public void onAppWidgetOptionsChanged(Context context, AppWidgetManager appWidgetManager, int appWidgetId, Bundle newOptions) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions);
     }
 
+    // This is called every time an App Widget is deleted from the App Widget host.
     // Delete AppWidgetIds from preferences on delete widget
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {

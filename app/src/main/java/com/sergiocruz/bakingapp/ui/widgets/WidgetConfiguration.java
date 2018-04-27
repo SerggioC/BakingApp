@@ -78,7 +78,6 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
         return columnIdList;
     }
 
-
     // Read the prefix from the SharedPreferences object for this widget.
     // If there is no preference saved, get the default from a resource
     static Integer loadFromPreferences(Context context, int appWidgetId) {

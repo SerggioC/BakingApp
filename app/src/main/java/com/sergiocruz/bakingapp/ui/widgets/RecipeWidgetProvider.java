@@ -28,17 +28,21 @@ import timber.log.Timber;
 
 public class RecipeWidgetProvider extends AppWidgetProvider {
 
+    public static final String WIDGET_RECIPE_EXTRA = "widget_recipe_extra";
+    public static final String WIDGET_RECIPE_BUNDLE = "widget_recipe_bundle";
+
     static void updateRecipeAppWidget(Context context, AppWidgetManager appWidgetManager, Recipe recipe, int appWidgetId) {
-        RemoteViews remoteViews = getRecipeRemoteViews(context, recipe);
+        RemoteViews remoteViews = getRecipeRemoteViews(context, recipe, appWidgetId);
         appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.widget_listview);
     }
 
     /**
      * Creates and returns the RemoteViews to be displayed in the single recipe mode widget
      */
-    private static RemoteViews getRecipeRemoteViews(Context context, Recipe recipe) {
+    private static RemoteViews getRecipeRemoteViews(Context context, Recipe recipe, int appWidgetId) {
         // Set the click handler to open the DetailActivity for the recipe ID,
-        // or the MainActivity if plant ID is invalid
+        // or the MainActivity if recipe ID is invalid
         Intent intent;
         if (recipe == null) {
             intent = new Intent(context, MainActivity.class);
@@ -48,12 +52,20 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
             intent.putExtra(RecipeDetailActivity.EXTRA_WIDGET_RECIPE, recipe.getColumnId());
         }
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
         // Construct the RemoteViews object.  It takes the package name (in our case, it's our
         // package, but it needs this because on the other side it's the widget host inflating
         // the layout from our package).
         RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.recipe_widget_layout);
+
+        Intent serviceIntent = new Intent(context, ListViewWidgetService.class);
+        serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
+        serviceIntent.setData(Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME)));
+
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(WIDGET_RECIPE_EXTRA, recipe);
+        serviceIntent.putExtra(WIDGET_RECIPE_BUNDLE, bundle);
+
+        remoteViews.setRemoteAdapter(R.id.widget_listview, serviceIntent);
 
         // Update Recipe image, recipe name and ingredients
         String recipeImageUrl = recipe != null ? recipe.getRecipeImage() : null;
@@ -62,16 +74,23 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
         } else {
             remoteViews.setImageViewUri(R.id.widget_image_background, Uri.parse(recipeImageUrl));
         }
+
         remoteViews.setTextViewText(R.id.widget_recipe_name, recipe == null ? context.getString(R.string.app_name) :
                 recipe.getRecipeName() + " " + context.getString(R.string.ingredients));
-        remoteViews.setTextViewText(R.id.widget_recipe_ingredients, getFormattedIngredientList(recipe != null ? recipe.getIngredientsList() : null));
+
+        // using Factory Service...
+        //remoteViews.setTextViewText(R.id.widget_recipe_ingredients, getFormattedIngredientList(recipe != null ? recipe.getIngredientsList() : null));
 
         // Widgets allow click handlers to only launch pending intents
+        // On clicking the widget launch the associated activity
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         remoteViews.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
+
 
         return remoteViews;
     }
 
+    // Ignore Using Factory Service to provide data
     private static String getFormattedIngredientList(List<Ingredient> ingredientList) {
         if (ingredientList == null) return "";
         int size = ingredientList.size();
@@ -103,7 +122,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
                     completeRecipeList.add(recipesDao.getCompleteRecipeFromColumnId(recipeColumnIds.get(i)));
                 }
 
-                return completeRecipeList == null ? null : RecipeTypeConverter.convertToRecipeList(completeRecipeList);
+                return RecipeTypeConverter.convertToRecipeList(completeRecipeList);
             }
 
             @Override
@@ -116,7 +135,7 @@ public class RecipeWidgetProvider extends AppWidgetProvider {
             }
         }.execute();
 
-
+        super.onUpdate(context, appWidgetManager, appWidgetIds);
 
     }
 

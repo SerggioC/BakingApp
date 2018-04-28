@@ -47,6 +47,7 @@
                 android:value=".activities.RecipeDetailActivity"/>
         </activity>
 
+        <!-- Widget configuration activity ( select recipe) -->
         <activity
             android:name="com.sergiocruz.bakingapp.ui.widgets.WidgetConfiguration"
             android:label="@string/app_name"
@@ -56,14 +57,16 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".fragments.RecipeStepFragment$MediaReceiver">
+        <receiver
+            android:name=".fragments.RecipeStepFragment$MediaReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
             </intent-filter>
         </receiver>
 
         <!-- Widgets Provider -->
-        <receiver android:name=".ui.widgets.RecipeWidgetProvider">
+        <receiver
+            android:name=".ui.widgets.RecipeWidgetProvider">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
             </intent-filter>
@@ -77,7 +80,9 @@
                 android:value="true"/>
         </receiver>
 
-        <service android:name=".ui.widgets.ListViewWidgetService"/>
+        <service
+            android:name="com.sergiocruz.bakingapp.ui.widgets.ListViewWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"/>
 
     </application>
 

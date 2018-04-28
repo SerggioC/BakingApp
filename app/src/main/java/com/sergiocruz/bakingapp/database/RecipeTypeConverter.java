@@ -15,6 +15,7 @@ public class RecipeTypeConverter {
 
     @TypeConverter
     public static List<Recipe> convertToRecipeList(List<CompleteRecipe> completeRecipeList) {
+        if (completeRecipeList == null) return null;
         List<Recipe> recipeList = new ArrayList<>(completeRecipeList.size());
         for (CompleteRecipe completeRecipe : completeRecipeList) {
             recipeList.add(convertToRecipe(completeRecipe));

@@ -3,61 +3,79 @@ package com.sergiocruz.bakingapp.ui.widgets;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
-import com.sergiocruz.bakingapp.ThreadExecutor;
-import com.sergiocruz.bakingapp.database.RecipeDatabase;
-import com.sergiocruz.bakingapp.database.RecipesDao;
-import com.sergiocruz.bakingapp.model.CompleteRecipe;
+import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.model.Ingredient;
+import com.sergiocruz.bakingapp.model.Recipe;
 
 import java.util.List;
+
+import static com.sergiocruz.bakingapp.ui.widgets.RecipeWidgetProvider.WIDGET_RECIPE_BUNDLE;
+import static com.sergiocruz.bakingapp.ui.widgets.RecipeWidgetProvider.WIDGET_RECIPE_EXTRA;
 
 
 public class ListViewWidgetService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
-        return new ListViewRemoteViewsFactory(this.getApplicationContext(), intent);
+        return new ListViewRemoteViewsFactory(this, intent);
     }
 }
 
 // RemoteViewsFactory is an adapter
 class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
     private final int mAppWidgetId;
-    private Context context;
+    private int recipeColumnId = -1;
+    private final Intent intent;
+    private Context mContext;
     private List<Ingredient> ingredientList;
-    private String recipeName;
 
-    public ListViewRemoteViewsFactory(Context applicationContext, Intent intent) {
-        context = applicationContext;
+
+    public ListViewRemoteViewsFactory(Context context, Intent intent) {
+        mContext = context;
+        this.intent = intent;
         mAppWidgetId = intent.getIntExtra(
                 AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
+        getDataFromBundle(intent);
+    }
+
+    private void getDataFromBundle(Intent intent) {
+        Bundle bundle = intent.getBundleExtra(WIDGET_RECIPE_BUNDLE);
+        if (bundle != null) {
+            Recipe recipe = bundle.getParcelable(WIDGET_RECIPE_EXTRA);
+            if (recipe != null){
+                ingredientList = recipe.getIngredientsList();
+                recipeColumnId = recipe.getColumnId();
+            }
+        }
     }
 
     @Override
     public void onCreate() {
-
+        getDataFromBundle(intent);
+        //getDataSynchronously();
     }
 
-    //called on start and when notifyAppWidgetViewDataChanged is called
+    // Called on start and when notifyAppWidgetViewDataChanged is called
     @Override
     public void onDataSetChanged() {
-
-        new ThreadExecutor().diskIO().execute(() -> {
-            RecipesDao recipesDao = RecipeDatabase.getDatabase(context).recipesDao();
-            Integer recipeColumnId = WidgetConfiguration.loadFromPreferences(context, mAppWidgetId);
-            CompleteRecipe completeRecipe = recipesDao.getCompleteRecipeFromColumnId(recipeColumnId);
-
-            ingredientList = completeRecipe.getIngredientList();
-            recipeName = completeRecipe.getRecipe().getRecipeName();
-        });
-
+        getDataFromBundle(intent);
+        //getDataSynchronously();
     }
 
+//    private void getDataSynchronously() {
+//        RecipesDao recipesDao = RecipeDatabase.getDatabase(context).recipesDao();
+//        Integer recipeColumnId = WidgetConfiguration.loadFromPreferences(context, mAppWidgetId);
+//        CompleteRecipe completeRecipe = recipesDao.getCompleteRecipeFromColumnId(recipeColumnId);
+//        ingredientList = completeRecipe.getIngredientList();
+//    }
+
     @Override
-    public void onDestroy() {}
+    public void onDestroy() { }
 
     @Override
     public int getCount() {
@@ -73,37 +91,30 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
      */
     @Override
     public RemoteViews getViewAt(int position) {
-//        if (ingredientList == null || ingredientList.getCount() == 0) return null;
-//        ingredientList.moveToPosition(position);
-//        int idIndex = ingredientList.getColumnIndex(PlantContract.PlantEntry._ID);
-//        int createTimeIndex = ingredientList.getColumnIndex(PlantContract.PlantEntry.COLUMN_CREATION_TIME);
-//        int waterTimeIndex = ingredientList.getColumnIndex(PlantContract.PlantEntry.COLUMN_LAST_WATERED_TIME);
-//        int plantTypeIndex = ingredientList.getColumnIndex(PlantContract.PlantEntry.COLUMN_PLANT_TYPE);
-//
-//        long plantId = ingredientList.getLong(idIndex);
-//        int plantType = ingredientList.getInt(plantTypeIndex);
-//        long createdAt = ingredientList.getLong(createTimeIndex);
-//        long wateredAt = ingredientList.getLong(waterTimeIndex);
-//        long timeNow = System.currentTimeMillis();
-//
-//        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.plant_widget);
-//
-//        // Update the plant image
-//        int imgRes = PlantUtils.getPlantImageRes(context, timeNow - createdAt, timeNow - wateredAt, plantType);
-//        views.setImageViewResource(R.id.widget_plant_image, imgRes);
-//        views.setTextViewText(R.id.widget_plant_name, String.valueOf(plantId));
-//        // Always hide the water drop in GridView mode
-//        views.setViewVisibility(R.id.widget_water_button, View.GONE);
-//
-//        // Fill in the onClick PendingIntent Template using the specific plant Id for each item individually
+        if (ingredientList == null || ingredientList.size() == 0) return null;
+
+        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.widget_row_item_layout);
+
+        // Update the widget
+        Ingredient ingredient = ingredientList.get(position);
+        views.setTextViewText(R.id.ingredient_row, capitalize(ingredient.getIngredient()));
+        views.setTextViewText(R.id.quantity_row, ingredient.getQuantity() + " " + ingredient.getMeasure());
+
+//        // Fill in the onClick PendingIntent Template using the specific ingredient Id for each item individually
 //        Bundle extras = new Bundle();
-//        extras.putLong(PlantDetailActivity.EXTRA_PLANT_ID, plantId);
-//        Intent fillInIntent = new Intent();
-//        fillInIntent.putExtras(extras);
-//        views.setOnClickFillInIntent(R.id.widget_plant_image, fillInIntent);
+//        extras.putLong(EXTRA_INGREDIENT_ID, ingredient.getIngredientId());
+//        Intent clickIntent = new Intent();
+//        clickIntent.putExtras(extras);
+//        views.setOnClickFillInIntent(R.id.widget_row, clickIntent);
 
-        return null;
+        return views;
 
+    }
+
+    private static final String capitalize(String string) {
+        return TextUtils.isEmpty(string) ?
+                string :
+                string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 
     @Override

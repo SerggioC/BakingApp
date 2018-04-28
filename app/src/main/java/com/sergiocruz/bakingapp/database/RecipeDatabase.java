@@ -20,7 +20,8 @@ public abstract class RecipeDatabase extends RoomDatabase {
         if (DATABASE_INSTANCE == null) {
             DATABASE_INSTANCE = Room
                     .databaseBuilder(context.getApplicationContext(), RecipeDatabase.class, RECIPE_DATABASE_NAME)
-                    //.fallbackToDestructiveMigration() // Destroys the DB and recreates with the new schema
+                    //.allowMainThreadQueries() // widgets data fetching sync
+                    //.fallbackToDestructiveMigration() // Destroys the DB and recreates it with the new schema
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_2_3)
                     .build();

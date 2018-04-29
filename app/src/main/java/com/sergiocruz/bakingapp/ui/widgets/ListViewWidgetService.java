@@ -4,23 +4,29 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.database.RecipeDatabase;
+import com.sergiocruz.bakingapp.database.RecipesDao;
+import com.sergiocruz.bakingapp.model.CompleteRecipe;
 import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
 
 import java.util.List;
 
+import timber.log.Timber;
+
 import static com.sergiocruz.bakingapp.ui.widgets.RecipeWidgetProvider.WIDGET_RECIPE_BUNDLE;
 import static com.sergiocruz.bakingapp.ui.widgets.RecipeWidgetProvider.WIDGET_RECIPE_EXTRA;
+import static com.sergiocruz.bakingapp.utils.AndroidUtils.capitalize;
 
 
 public class ListViewWidgetService extends RemoteViewsService {
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
+        Timber.i("onGetViewFactory");
         return new ListViewRemoteViewsFactory(this, intent);
     }
 }
@@ -33,7 +39,6 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
     private Context mContext;
     private List<Ingredient> ingredientList;
 
-
     public ListViewRemoteViewsFactory(Context context, Intent intent) {
         mContext = context;
         this.intent = intent;
@@ -41,6 +46,7 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
                 AppWidgetManager.EXTRA_APPWIDGET_ID,
                 AppWidgetManager.INVALID_APPWIDGET_ID);
         getDataFromBundle(intent);
+        Timber.i("ListViewRemoteViewsFactory Constructor mAppWidgetId=" + mAppWidgetId + " recipeColumnId= " + recipeColumnId);
     }
 
     private void getDataFromBundle(Intent intent) {
@@ -56,6 +62,7 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
 
     @Override
     public void onCreate() {
+        Timber.i("onCreate RemoteViewsFactory");
         getDataFromBundle(intent);
         //getDataSynchronously();
     }
@@ -63,19 +70,23 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
     // Called on start and when notifyAppWidgetViewDataChanged is called
     @Override
     public void onDataSetChanged() {
+        Timber.i("onDataSetChanged RemoteViewsFactory");
+
         getDataFromBundle(intent);
         //getDataSynchronously();
     }
 
-//    private void getDataSynchronously() {
-//        RecipesDao recipesDao = RecipeDatabase.getDatabase(context).recipesDao();
-//        Integer recipeColumnId = WidgetConfiguration.loadFromPreferences(context, mAppWidgetId);
-//        CompleteRecipe completeRecipe = recipesDao.getCompleteRecipeFromColumnId(recipeColumnId);
-//        ingredientList = completeRecipe.getIngredientList();
-//    }
+    private void getDataSynchronously() {
+        RecipesDao recipesDao = RecipeDatabase.getDatabase(mContext).recipesDao();
+        recipeColumnId = WidgetConfiguration.loadFromPreferences(mContext, mAppWidgetId);
+        CompleteRecipe completeRecipe = recipesDao.getCompleteRecipeFromColumnId(recipeColumnId);
+        ingredientList = completeRecipe.getIngredientList();
+    }
 
     @Override
-    public void onDestroy() { }
+    public void onDestroy() {
+        Timber.i("onDestroy RemoteViewsFactory");
+    }
 
     @Override
     public int getCount() {
@@ -93,7 +104,7 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
     public RemoteViews getViewAt(int position) {
         if (ingredientList == null || ingredientList.size() == 0) return null;
 
-        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.widget_row_item_layout);
+        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.ingredient_item_row_layout);
 
         // Update the widget
         Ingredient ingredient = ingredientList.get(position);
@@ -109,12 +120,6 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
 
         return views;
 
-    }
-
-    private static final String capitalize(String string) {
-        return TextUtils.isEmpty(string) ?
-                string :
-                string.substring(0, 1).toUpperCase() + string.substring(1);
     }
 
     @Override

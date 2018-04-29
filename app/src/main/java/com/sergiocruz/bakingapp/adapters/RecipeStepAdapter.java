@@ -25,6 +25,8 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_HEADER = 0;
     private static final int TYPE_STEP = 1;
+    private static final int TYPE_INGREDIENT = 2;
+    private static final int TYPE_STEP_HEADER = 3;
 
     private RecipeStepClickListener mRecipeStepClickListener;
     private List<RecipeStep> recipeStepList;
@@ -44,17 +46,34 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemViewType(int position) {
-        if (position == 0) {
-            return TYPE_HEADER;
+//        if (position == 0) {
+//            return TYPE_HEADER;
+//        } else {
+//            return TYPE_STEP;
+//        }
+
+        if (position < ingredientList.size()) {
+            return TYPE_INGREDIENT;
+        } else if (position == ingredientList.size()) {
+            return TYPE_STEP_HEADER;
         } else {
             return TYPE_STEP;
         }
+
+
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         RecyclerView.ViewHolder holder = null;
         switch (viewType) {
+            case TYPE_INGREDIENT:{
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.ingredient_item_row_layout, parent, false);
+                holder = new RecipeStepAdapter.IngredientRowViewHolder(view);
+                break;
+            }
+
             case TYPE_HEADER: {
                 View view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.recipe_steps_headview_item, parent, false);
@@ -73,8 +92,17 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
-
         int itemViewType = getItemViewType(position);
+
+
+        if (itemViewType == TYPE_INGREDIENT) {
+            IngredientRowViewHolder viewHolder = (IngredientRowViewHolder) holder;
+            viewHolder.ingredientName.setText(ingredientList.get(position).getIngredient());
+            viewHolder.quantity.setText(ingredientList.get(position).getQuantity() + " " +
+                    ingredientList.get(position).getMeasure());
+
+        }
+
         if (itemViewType == TYPE_HEADER) {
             HeaderStepViewHolder viewHolder = (HeaderStepViewHolder) holder;
 
@@ -94,8 +122,6 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         } else if (itemViewType == TYPE_STEP) {
             RecipeStepViewHolder viewHolder = (RecipeStepViewHolder) holder;
-
-            Timber.i("position = " + (position - 1));
 
             RecipeStep recipeStep = recipeStepList.get(position - 1);
 
@@ -127,7 +153,8 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
-        return recipeStepList == null ? 0 : recipeStepList.size() + 1; // + 1 from header
+        return (ingredientList == null ? 0 : ingredientList.size()) +
+                (recipeStepList == null ? 0 : recipeStepList.size());
     }
 
     public interface RecipeStepClickListener {
@@ -163,4 +190,14 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
+    public class IngredientRowViewHolder extends RecyclerView.ViewHolder {
+        final TextView ingredientName;
+        final TextView quantity;
+
+        public IngredientRowViewHolder(View itemView) {
+            super(itemView);
+            ingredientName = itemView.findViewById(R.id.ingredient_row);
+            quantity = itemView.findViewById(R.id.quantity_row);
+        }
+    }
 }

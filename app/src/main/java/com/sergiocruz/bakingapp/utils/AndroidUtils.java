@@ -2,6 +2,7 @@ package com.sergiocruz.bakingapp.utils;
 
 import android.content.Context;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -53,5 +54,9 @@ public class AndroidUtils {
         theCustomToast.show();
     }
 
+    public static final String capitalize(String string) {
+        return TextUtils.isEmpty(string) ? string :
+                string.substring(0, 1).toUpperCase() + string.substring(1);
+    }
 
 }

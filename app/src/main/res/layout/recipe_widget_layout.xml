@@ -1,57 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_background">
+    android:background="@drawable/widget_background"
+    android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/widget_image_background"
+    <TextView
+        android:id="@+id/widget_recipe_name"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="32dp"
-        android:alpha="0.5"
-        android:contentDescription="@string/recipe_image"
-        android:src="@mipmap/ic_launcher"/>
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:background="@drawable/widget_title_background"
+        android:drawableEnd="@drawable/ic_open"
+        android:drawableRight="@drawable/ic_open"
+        android:padding="8dp"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        tools:text="@tools:sample/full_names"/>
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <TextView
-            android:id="@+id/widget_recipe_name"
+        <ImageView
+            android:id="@+id/widget_image_background"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/widget_title_background"
-            android:padding="8dp"
-            android:textAlignment="center"
-            android:textColor="@color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:text="@tools:sample/full_names"/>
+            android:layout_height="match_parent"
+            android:layout_margin="32dp"
+            android:alpha="0.5"
+            android:contentDescription="@string/recipe_image"
+            android:src="@mipmap/ic_launcher"/>
 
         <ListView
             android:id="@+id/widget_listview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:divider="@null"
-            tools:listitem="@layout/widget_row_item_layout"/>
+            tools:listitem="@layout/ingredient_item_row_layout"/>
 
-        <!--<TextView-->
-            <!--android:id="@+id/widget_recipe_ingredients"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="match_parent"-->
-            <!--android:layout_gravity="center_horizontal"-->
-            <!--android:background="@drawable/frame_background"-->
-            <!--android:padding="8dp"-->
-            <!--android:textSize="16sp"-->
-            <!--tools:text="@tools:sample/lorem/random"/>-->
+    </FrameLayout>
 
-    </LinearLayout>
-
-
-</FrameLayout>
+</LinearLayout>

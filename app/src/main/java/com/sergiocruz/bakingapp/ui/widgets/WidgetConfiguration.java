@@ -1,7 +1,6 @@
 package com.sergiocruz.bakingapp.ui.widgets;
 
 import android.appwidget.AppWidgetManager;
-import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -42,8 +41,6 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
     private int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     private WidgetConfiguration mContext;
     private RecyclerView recyclerView;
-    private boolean isTwoPane;
-    private RecipeAdapter adapter;
     private ActivityViewModel viewModel;
     private Menu mMenu;
 
@@ -55,15 +52,15 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
     static void saveToPreferences(Context context, int appWidgetId, Integer recipeColumnId) {
         SharedPreferences.Editor prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE).edit();
         prefs.putInt(PREFERENCE_PREFIX + appWidgetId, recipeColumnId);
-        prefs.commit();
+        prefs.apply();
     }
 
     // Delete this column id from the SharedPreferences object for this widget
     static void deleteFromPreferences(Context context, int[] appWidgetIds) {
-        for (int i = 0; i < appWidgetIds.length; i++) {
+        for (int appWidgetId : appWidgetIds) {
             SharedPreferences.Editor prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE).edit();
-            prefs.remove(PREFERENCE_PREFIX + appWidgetIds[i]);
-            prefs.commit();
+            prefs.remove(PREFERENCE_PREFIX + appWidgetId);
+            prefs.apply();
         }
     }
 
@@ -72,8 +69,8 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
         SharedPreferences prefs = context.getSharedPreferences(PREFERENCE_FILE_NAME, MODE_PRIVATE);
         int length = appWidgetIds.length;
         List<Integer> columnIdList = new ArrayList<>(length);
-        for (int i = 0; i < length; i++) {
-            columnIdList.add(prefs.getInt(PREFERENCE_PREFIX + appWidgetIds[i], INVALID_VALUE));
+        for (int appWidgetId : appWidgetIds) {
+            columnIdList.add(prefs.getInt(PREFERENCE_PREFIX + appWidgetId, INVALID_VALUE));
         }
         return columnIdList;
     }
@@ -108,14 +105,13 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
         recyclerView = findViewById(R.id.recipe_list_recyclerview);
 
-        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
-        if (isTwoPane) {
+        if (getResources().getBoolean(R.bool.is_two_pane)) {
             recyclerView.setLayoutManager(new GridLayoutManager(mContext, GRID_SPAN_COUNT, GridLayoutManager.VERTICAL, false));
         } else {
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }
         recyclerView.setHasFixedSize(true);
-        adapter = new RecipeAdapter(this, this, this);
+        RecipeAdapter adapter = new RecipeAdapter(this, this, this);
         recyclerView.setAdapter(adapter);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -125,12 +121,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
 
         // Start the ViewModel
         viewModel = ActivityViewModel.getInstance(this, getFavorites, hasInternet);
-        viewModel.getAllRecipes().observe(WidgetConfiguration.this, new Observer<List<Recipe>>() {
-            @Override
-            public void onChanged(@Nullable List<Recipe> recipesList) {
-                adapter.swapRecipesData(recipesList);
-            }
-        });
+        viewModel.getAllRecipes().observe(WidgetConfiguration.this, adapter::swapRecipesData);
 
         if (savedInstanceState != null) {
             int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);

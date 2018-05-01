@@ -113,14 +113,14 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
-        return recipeStepList == null ? 0 : recipeStepList.size();
+        return recipeStepList == null ? 0 : recipeStepList.size() + 1;
     }
 
     public interface RecipeStepClickListener {
         void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked);
     }
 
-    class HeaderStepViewHolder extends RecyclerView.ViewHolder {
+    public class HeaderStepViewHolder extends RecyclerView.ViewHolder {
         final TextView stepsNum;
 
         HeaderStepViewHolder(View itemView) {

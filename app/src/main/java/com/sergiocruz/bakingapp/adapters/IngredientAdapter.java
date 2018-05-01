@@ -92,7 +92,7 @@ public class IngredientAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
-        return (ingredientList == null ? 0 : ingredientList.size());
+        return (ingredientList == null ? 0 : ingredientList.size() + 1);
     }
 
     public interface IngredientClickListener {

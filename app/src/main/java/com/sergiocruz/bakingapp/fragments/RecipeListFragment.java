@@ -118,7 +118,6 @@ public class RecipeListFragment extends Fragment implements
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
                 adapter.swapRecipesData(recipesList);
-
             }
         });
 
@@ -251,11 +250,13 @@ public class RecipeListFragment extends Fragment implements
         Integer isFavorite = recipe.getIsFavorite();
         if (isFavorite != null) { // if it's a favorite remove it from favorites
             if (isFavorite == 1) {
-                new ThreadExecutor().diskIO().execute(() ->
-                        RecipeDatabase.getDatabase(mContext).recipesDao().deleteRecipeByColumnId(recipe.getColumnId()));
+                new ThreadExecutor().diskIO().execute(() -> {
+                    RecipeDatabase.getDatabase(mContext).recipesDao().deleteRecipeByColumnId(recipe.getColumnId());
+                    new ThreadExecutor().mainThread().execute(()-> viewModel.updateData(true, false));
+                });
             }
         } else {
-            Toast.makeText(mContext, R.string.click_to_save, Toast.LENGTH_LONG).show();
+            showCustomToast(mContext, getString(R.string.click_to_save), 0, R.color.brown700, Toast.LENGTH_LONG);
         }
     }
 

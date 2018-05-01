@@ -15,19 +15,25 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.ui.PlayerView;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.exoplayer.ExoCacheDataSourceFactory;
 
 import timber.log.Timber;
 
+import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.RECIPE_STEP_POSITION;
 import static com.sergiocruz.bakingapp.fragments.RecipeStepFragment.PLAYER_URI_KEY;
 
 public class FullScreenActivity extends AppCompatActivity {
@@ -41,6 +47,7 @@ public class FullScreenActivity extends AppCompatActivity {
     private ImageView mExoFullScreenIcon;
     private SimpleExoPlayer mExoPlayer;
     private Uri mExoPlayerUri;
+    private Integer savedStepPosition;
 
     private void bindViews() {
         exoPlayerView = findViewById(R.id.exoPlayerView);
@@ -66,6 +73,7 @@ public class FullScreenActivity extends AppCompatActivity {
             mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
             savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
+            savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_POSITION);
             hasSavedState = true;
         }
     }
@@ -85,6 +93,7 @@ public class FullScreenActivity extends AppCompatActivity {
             mExoPlayerUri = extras.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = extras.getBoolean(PLAYER_PLAYING_KEY);
             savedExoPosition = extras.getLong(PLAYER_POSITION_KEY);
+            savedStepPosition = extras.getInt(RECIPE_STEP_POSITION);
             hasSavedState = true;
             Timber.d("mExoPlayerUri= " + mExoPlayerUri +"\n" +
                     "savedIsExoPlaying= " + savedIsExoPlaying + "\n" +
@@ -104,6 +113,17 @@ public class FullScreenActivity extends AppCompatActivity {
         //exoPlayerView.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT); // on XML
 
         mExoPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultTrackSelector());
+
+        final DefaultBandwidthMeter BANDWIDTH_METER = new DefaultBandwidthMeter();
+
+        TrackSelection.Factory adaptiveTrackSelectionFactory =
+                new AdaptiveTrackSelection.Factory(BANDWIDTH_METER);
+
+        mExoPlayer = ExoPlayerFactory.newSimpleInstance(
+                new DefaultRenderersFactory(this),
+                new DefaultTrackSelector(adaptiveTrackSelectionFactory),
+                new DefaultLoadControl());
+
         mExoPlayer.clearVideoSurface();
         mExoPlayer.setVideoSurfaceView((SurfaceView) exoPlayerView.getVideoSurfaceView());
         exoPlayerView.setDefaultArtwork(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
@@ -128,6 +148,8 @@ public class FullScreenActivity extends AppCompatActivity {
         outState.putString(PLAYER_URI_KEY, mExoPlayerUri.toString());
         outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer.getPlayWhenReady());
         outState.putLong(PLAYER_POSITION_KEY, mExoPlayer.getCurrentPosition());
+        outState.putInt(RECIPE_STEP_POSITION, savedStepPosition);
+
     }
 
     private void setDataToParent() {
@@ -135,6 +157,7 @@ public class FullScreenActivity extends AppCompatActivity {
         intent.putExtra(PLAYER_URI_KEY, mExoPlayerUri);
         intent.putExtra(PLAYER_PLAYING_KEY, mExoPlayer.getPlayWhenReady());
         intent.putExtra(PLAYER_POSITION_KEY, mExoPlayer.getCurrentPosition());
+        intent.putExtra(RECIPE_STEP_POSITION, savedStepPosition);
         setResult(RESULT_OK, intent);
     }
 

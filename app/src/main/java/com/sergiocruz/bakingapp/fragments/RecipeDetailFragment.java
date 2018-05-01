@@ -197,12 +197,14 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         if (adapterPosition == lastAdapterPosition) return;
 
         if (stepsRecyclerView == null) return;
-        RecipeStepAdapter.RecipeStepViewHolder viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) stepsRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
+
+        RecyclerView.ViewHolder viewHolder = stepsRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
         if (viewHolder == null) return;
+
         viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background_selected));
 
         if (lastAdapterPosition > 0) {
-            viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) stepsRecyclerView.findViewHolderForAdapterPosition(lastAdapterPosition);
+            viewHolder = stepsRecyclerView.findViewHolderForAdapterPosition(lastAdapterPosition);
             viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background));
         }
 

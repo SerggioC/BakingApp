@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
                     .add(R.id.recipe_list_fragment_container, new RecipeListFragment())
                     .commit();
         }
-
     }
 
     @Override

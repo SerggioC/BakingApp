@@ -15,7 +15,7 @@
         android:layout_height="40dp"
         android:layout_margin="4dp"
         android:contentDescription="@string/step_image_desc"
-        tools:srcCompat="@drawable/ic_chef"/>
+        tools:srcCompat="@drawable/ic_chef_hat"/>
 
     <TextView
         android:id="@+id/step_resume"

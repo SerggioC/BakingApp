@@ -21,6 +21,7 @@ import java.util.List;
 import timber.log.Timber;
 
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
+import static com.sergiocruz.bakingapp.utils.AndroidUtils.animateItemViewSlideFromBottom;
 
 public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private static final int TYPE_STEP_HEADER = 0;
@@ -92,19 +93,21 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
                     Glide.with(context)
                             .load(thumbnailUrl)
                             .transition(withCrossFade())
-                            .apply(new RequestOptions().error(R.drawable.ic_chef))
+                            .apply(new RequestOptions().error(R.drawable.ic_chef_hat))
                             .into(viewHolder.recipeImageIcon);
                 default:
                     Glide.with(context)
-                            .load(R.drawable.ic_chef)
+                            .load(R.drawable.ic_chef_hat)
                             .transition(withCrossFade())
                             .into(viewHolder.recipeImageIcon);
             }
 
             String shortDesc = recipeStep.getShortDesc();
-            String description = TextUtils.isEmpty(shortDesc) ? "View Recipe Step " + position : shortDesc;
+            String description = TextUtils.isEmpty(shortDesc) ? context.getString(R.string.view_step) + " " + position : shortDesc;
             viewHolder.recipeStepResume.setText(description);
         }
+
+        animateItemViewSlideFromBottom(holder.itemView, 50 * position);
 
     }
 
@@ -120,7 +123,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     class HeaderStepViewHolder extends RecyclerView.ViewHolder {
         final TextView stepsNum;
 
-        public HeaderStepViewHolder(View itemView) {
+        HeaderStepViewHolder(View itemView) {
             super(itemView);
             stepsNum = itemView.findViewById(R.id.steps_num);
         }
@@ -130,7 +133,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         final ImageView recipeImageIcon;
         final TextView recipeStepResume;
 
-        public RecipeStepViewHolder(View itemView) {
+        RecipeStepViewHolder(View itemView) {
             super(itemView);
             recipeImageIcon = itemView.findViewById(R.id.step_image);
             recipeStepResume = itemView.findViewById(R.id.step_resume);

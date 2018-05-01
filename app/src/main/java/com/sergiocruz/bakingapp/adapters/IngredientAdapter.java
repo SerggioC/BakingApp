@@ -12,6 +12,7 @@ import com.sergiocruz.bakingapp.model.Recipe;
 
 import java.util.List;
 
+import static com.sergiocruz.bakingapp.utils.AndroidUtils.animateItemViewSlideFromBottom;
 import static com.sergiocruz.bakingapp.utils.AndroidUtils.capitalize;
 
 public class IngredientAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -75,7 +76,7 @@ public class IngredientAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         } else if (itemViewType == TYPE_INGREDIENT) {
             IngredientRowViewHolder viewHolder = (IngredientRowViewHolder) holder;
-            Ingredient ingredient = ingredientList.get(position);
+            Ingredient ingredient = ingredientList.get(position - 1); // deduce header index
 
             boolean checked = ingredient.getChecked() != null && ingredient.getChecked() == 1;
             viewHolder.checkBox.setChecked(checked);
@@ -83,7 +84,11 @@ public class IngredientAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             viewHolder.quantity.setText(ingredient.getQuantity() + " " + ingredient.getMeasure());
         }
 
+        animateItemViewSlideFromBottom(holder.itemView, 50 * position);
+
     }
+
+
 
     @Override
     public int getItemCount() {

@@ -15,6 +15,8 @@ import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import java.util.List;
 
+import static com.sergiocruz.bakingapp.utils.AndroidUtils.animateItemViewSlideFromBottom;
+
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
     private RecipeClickListener mRecipeClickListener;
     private FavoriteClickListener mFavoriteClickListener;
@@ -62,6 +64,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
         Integer isFavorite = recipe.getIsFavorite();
         holder.shineButton.setChecked(isFavorite != null && isFavorite == 1, true);
+
+        animateItemViewSlideFromBottom(holder.itemView, 50 * position);
     }
 
 

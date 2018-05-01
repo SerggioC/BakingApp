@@ -19,4 +19,5 @@
     <string name="already_saved">Already in Favorites</string>
     <string name="click_to_save">Click to add to favorites</string>
     <string name="select_recipe">Select recipe to display as a widget</string>
+    <string name="view_step">View Recipe Step</string>
 </resources>

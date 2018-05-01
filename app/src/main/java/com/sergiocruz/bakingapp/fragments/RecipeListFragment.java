@@ -23,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sergiocruz.bakingapp.R;
+import com.sergiocruz.bakingapp.SimpleIdlingResource;
 import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
 import com.sergiocruz.bakingapp.adapters.RecipeAdapter;
@@ -30,18 +31,24 @@ import com.sergiocruz.bakingapp.database.RecipeDatabase;
 import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.Recipe;
-import com.sergiocruz.bakingapp.utils.AndroidUtils;
 import com.sergiocruz.bakingapp.utils.NetworkUtils;
 
 import java.util.List;
 
 import timber.log.Timber;
 
-public class RecipeListFragment extends Fragment implements RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener, RecipeAdapter.FavoriteLongClickListener {
+import static com.sergiocruz.bakingapp.utils.AndroidUtils.showCustomToast;
+
+public class RecipeListFragment extends Fragment implements
+        RecipeAdapter.RecipeClickListener, RecipeAdapter.FavoriteClickListener,
+        RecipeAdapter.FavoriteLongClickListener {
     public static final String RECYCLER_VIEW_POSITION = "RecyclerView_Position";
     public static final String ONLINE = "online";
     public static final String FAVORITES = "favorites";
     public static final int GRID_SPAN_COUNT = 2;
+    // SimpleIdlingResource variable will be null in production
+    @Nullable
+    SimpleIdlingResource simpleIdlingResource;
     private Context mContext;
     private ActivityViewModel viewModel;
     private RecyclerView recyclerView;
@@ -49,9 +56,34 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
     private boolean isTwoPane;
     private Menu mMenu;
 
+    /**
+     * method that returns the IdlingResource variable. It will
+     * instantiate a new instance of SimpleIdlingResource if the IdlingResource is null.
+     * This method will only be called from test.
+     */
+    @Nullable
+    public SimpleIdlingResource getSimpleIdlingResource() {
+        if (simpleIdlingResource == null)
+            simpleIdlingResource = new SimpleIdlingResource();
+        return simpleIdlingResource;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+
+        simpleIdlingResource = getSimpleIdlingResource();
+        /**
+         * The IdlingResource is null in production as set by the @Nullable annotation which means
+         * the value is allowed to be null.
+         *
+         * If the idle state is true, Espresso can perform the next action.
+         * If the idle state is false, Espresso will wait until it is true before
+         * performing the next action.
+         */
+        if (simpleIdlingResource != null) {
+            simpleIdlingResource.setIdleState(false);
+        }
     }
 
     @Override
@@ -86,19 +118,29 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
                 adapter.swapRecipesData(recipesList);
+
             }
         });
 
-        if (savedInstanceState != null) {
-            int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
-            recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
+        recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+
+                if (savedInstanceState != null) {
+                    int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
                     recyclerView.smoothScrollToPosition(position);
-                    recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 }
-            });
-        }
+
+                // Set Idle state to true after all done
+                // for testing only
+                if (simpleIdlingResource != null) {
+                    simpleIdlingResource.setIdleState(true);
+                }
+
+                recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
+
 
         return rootView;
     }
@@ -163,7 +205,7 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
         prefs.edit().putString(getString(R.string.pref_menu_key), ONLINE).apply();
         if (!hasInternet) {
-            AndroidUtils.showCustomToast(mContext,
+            showCustomToast(mContext,
                     getString(R.string.working_offline),
                     R.mipmap.ic_info, R.color.blue, Toast.LENGTH_LONG);
         }
@@ -199,7 +241,7 @@ public class RecipeListFragment extends Fragment implements RecipeAdapter.Recipe
             new ThreadExecutor().diskIO().execute(() ->
                     RecipeTypeConverter.saveRecipeToDB(recipe, mContext));
         } else {
-            Toast.makeText(mContext, R.string.already_saved, Toast.LENGTH_LONG).show();
+            showCustomToast(mContext, getString(R.string.already_saved), 0, R.color.brown700, Toast.LENGTH_SHORT);
         }
     }
 

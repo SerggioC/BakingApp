@@ -67,6 +67,8 @@ public interface RecipesDao {
     @Query("UPDATE Recipe SET isFavorite = :isFavorite WHERE columnId = :columnId")
     void updateRecipe(Integer isFavorite, Integer columnId);
 
+    @Query("UPDATE Ingredient SET checked = :isChecked WHERE ingredientId = :id")
+    void updateIngredientStatus(Integer isChecked, Integer id);
 
     @Insert(onConflict = REPLACE)
     void addRecipe(Recipe recipe);

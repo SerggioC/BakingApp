@@ -52,6 +52,9 @@ public class Ingredient implements Parcelable {
     @Expose(serialize = false, deserialize = false)
     Integer recipeId;
 
+    @Expose(serialize = false, deserialize = false)
+    Integer checked;
+
     @Ignore //ignored from room, used for Retrofit GSON Serialization
     public Ingredient(Float quantity, String measure, String ingredient) {
         this.quantity = quantity;
@@ -59,12 +62,13 @@ public class Ingredient implements Parcelable {
         this.ingredient = ingredient;
     }
 
-    public Ingredient(Integer ingredientId, Float quantity, String measure, String ingredient, Integer recipeId) {
+    public Ingredient(Integer ingredientId, Float quantity, String measure, String ingredient, Integer recipeId, Integer checked) {
         this.ingredientId = ingredientId;
         this.quantity = quantity;
         this.measure = measure;
         this.ingredient = ingredient;
         this.recipeId = recipeId;
+        this.checked = checked;
     }
 
     protected Ingredient(Parcel in) {
@@ -73,6 +77,15 @@ public class Ingredient implements Parcelable {
         measure = in.readString();
         ingredient = in.readString();
         recipeId = in.readByte() == 0x00 ? null : in.readInt();
+        checked = in.readByte() == 0x00 ? null : in.readInt();
+    }
+
+    public Integer getChecked() {
+        return checked;
+    }
+
+    public void setChecked(Integer checked) {
+        this.checked = checked;
     }
 
     public Integer getIngredientId() {
@@ -141,6 +154,12 @@ public class Ingredient implements Parcelable {
         } else {
             dest.writeByte((byte) (0x01));
             dest.writeInt(recipeId);
+        }
+        if (checked == null) {
+            dest.writeByte((byte) (0x00));
+        } else {
+            dest.writeByte((byte) (0x01));
+            dest.writeInt(checked);
         }
     }
 }

@@ -11,7 +11,7 @@ import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 
-@Database(entities = {Recipe.class, Ingredient.class, RecipeStep.class}, version = 3)
+@Database(entities = {Recipe.class, Ingredient.class, RecipeStep.class}, version = 4)
 public abstract class RecipeDatabase extends RoomDatabase {
     private static final String RECIPE_DATABASE_NAME = "recipes.db";
     private static RecipeDatabase DATABASE_INSTANCE;
@@ -24,6 +24,7 @@ public abstract class RecipeDatabase extends RoomDatabase {
                     //.fallbackToDestructiveMigration() // Destroys the DB and recreates it with the new schema
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_3_4)
                     .build();
         }
         return DATABASE_INSTANCE;
@@ -42,6 +43,14 @@ public abstract class RecipeDatabase extends RoomDatabase {
         @Override
         public void migrate(SupportSQLiteDatabase database) {
             database.execSQL("ALTER TABLE Recipe ADD COLUMN timeStamp INTEGER");
+        }
+    };
+
+    // Migrate DB from version 3 to version 4: add column checked ingredient
+    private static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE Ingredient ADD COLUMN checked INTEGER");
         }
     };
 

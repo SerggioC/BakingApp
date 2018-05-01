@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -104,21 +105,27 @@ class ListViewRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactor
     public RemoteViews getViewAt(int position) {
         if (ingredientList == null || ingredientList.size() == 0) return null;
 
-        RemoteViews views = new RemoteViews(mContext.getPackageName(), R.layout.ingredient_item_row_layout);
+        RemoteViews remoteViews = new RemoteViews(mContext.getPackageName(), R.layout.widget_ingredient_row);
 
         // Update the widget
         Ingredient ingredient = ingredientList.get(position);
-        views.setTextViewText(R.id.ingredient_row, capitalize(ingredient.getIngredient()));
-        views.setTextViewText(R.id.quantity_row, ingredient.getQuantity() + " " + ingredient.getMeasure());
+        remoteViews.setTextViewText(R.id.ingredient_row, capitalize(ingredient.getIngredient()));
+        remoteViews.setTextViewText(R.id.quantity_row, ingredient.getQuantity() + " " + ingredient.getMeasure());
+        boolean checked = ingredient.getChecked() != null && ingredient.getChecked() == 1;
+        if (checked) {
+            remoteViews.setTextColor(R.id.ingredient_row, ContextCompat.getColor(mContext, R.color.green_done));
+            remoteViews.setTextColor(R.id.quantity_row, ContextCompat.getColor(mContext, R.color.green_done));
+        }
+
 
 //        // Fill in the onClick PendingIntent Template using the specific ingredient Id for each item individually
 //        Bundle extras = new Bundle();
 //        extras.putLong(EXTRA_INGREDIENT_ID, ingredient.getIngredientId());
 //        Intent clickIntent = new Intent();
 //        clickIntent.putExtras(extras);
-//        views.setOnClickFillInIntent(R.id.widget_row, clickIntent);
+//        remoteViews.setOnClickFillInIntent(R.id.widget_row, clickIntent);
 
-        return views;
+        return remoteViews;
 
     }
 

@@ -15,17 +15,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.ThreadExecutor;
 import com.sergiocruz.bakingapp.activities.MainActivity;
 import com.sergiocruz.bakingapp.activities.RecipeDetailActivity;
+import com.sergiocruz.bakingapp.adapters.IngredientAdapter;
 import com.sergiocruz.bakingapp.adapters.RecipeStepAdapter;
 import com.sergiocruz.bakingapp.database.RecipeDatabase;
 import com.sergiocruz.bakingapp.database.RecipeTypeConverter;
 import com.sergiocruz.bakingapp.model.ActivityViewModel;
 import com.sergiocruz.bakingapp.model.CompleteRecipe;
+import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
 
@@ -40,7 +41,7 @@ import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIE
  * in two-pane mode (on tablets) or a {@link RecipeDetailActivity}
  * on handsets.
  */
-public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener {
+public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener, IngredientAdapter.IngredientClickListener {
     public static final int INVALID_POSITION = -1;
     public static final String RECIPE_STEP_POSITION = "outstate_step_position";
     /**
@@ -48,8 +49,10 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
      * that this fragment represents.
      */
     private Recipe recipe;
-    private RecyclerView recyclerView;
-    private RecipeStepAdapter adapter;
+    private RecyclerView ingredientsRecyclerView;
+    private RecyclerView stepsRecyclerView;
+    private IngredientAdapter ingredientAdapter;
+    private RecipeStepAdapter recipeStepsAdapter;
     private Boolean isTwoPane;
     private ActivityViewModel viewModel;
     private int lastAdapterPosition = 0;
@@ -57,6 +60,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     private int savedStepPosition = -1;
     private int savedRecyclerViewPosition;
     private boolean hasSavedState = false;
+    private Context mContext;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -68,24 +72,24 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_recipe_detail, container, false);
-        Context context = getContext();
+        mContext = getContext();
 
         // If entering from Widget
         Integer RecipeColumnID = getActivity().getIntent().getIntExtra(EXTRA_WIDGET_RECIPE, INVALID_POSITION);
         viewModel = ActivityViewModel.getInstance(this, true, false);
         if (RecipeColumnID != INVALID_POSITION) {
             new ThreadExecutor().diskIO().execute(() -> {
-                CompleteRecipe completeRecipe = RecipeDatabase.getDatabase(context).recipesDao().getCompleteRecipe(RecipeColumnID);
+                CompleteRecipe completeRecipe = RecipeDatabase.getDatabase(mContext).recipesDao().getCompleteRecipe(RecipeColumnID);
                 recipe = RecipeTypeConverter.convertToRecipe(completeRecipe);
                 new ThreadExecutor().mainThread().execute(() -> {
                     viewModel.setRecipe(recipe);
-                    initializeUI(savedInstanceState, rootView, context);
+                    initializeUI(savedInstanceState, rootView, mContext);
                 });
 
             });
         } else {
             recipe = viewModel.getRecipe().getValue();
-            initializeUI(savedInstanceState, rootView, context);
+            initializeUI(savedInstanceState, rootView, mContext);
             setLayoutObserver();
         }
 
@@ -105,19 +109,22 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     }
 
     private void initializeUI(Bundle savedInstanceState, View rootView, Context context) {
-        TextView recipeNameTextView = rootView.findViewById(R.id.recipe_name);
-        recipeNameTextView.setText(recipe.getRecipeName());
 
-        TextView servingSizeTV = rootView.findViewById(R.id.servings_num);
-        servingSizeTV.setText(recipe.getServings().toString());
+        ingredientAdapter = new IngredientAdapter(this);
+        ingredientAdapter.swapIngredientsData(recipe);
 
-        adapter = new RecipeStepAdapter(context, this);
-        adapter.swapRecipeStepData(recipe.getStepsList(), recipe.getIngredientsList());
+        ingredientsRecyclerView = rootView.findViewById(R.id.recipe_ingredients_recyclerview);
+        ingredientsRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        ingredientsRecyclerView.setHasFixedSize(false);
+        ingredientsRecyclerView.setAdapter(ingredientAdapter);
 
-        recyclerView = rootView.findViewById(R.id.recipe_steps_recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
-        recyclerView.setHasFixedSize(false);
-        recyclerView.setAdapter(adapter);
+        recipeStepsAdapter = new RecipeStepAdapter(context, this);
+        recipeStepsAdapter.swapRecipeStepData(recipe);
+
+        stepsRecyclerView = rootView.findViewById(R.id.recipe_steps_recyclerview);
+        stepsRecyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false));
+        stepsRecyclerView.setHasFixedSize(false);
+        stepsRecyclerView.setAdapter(recipeStepsAdapter);
 
         if (savedInstanceState != null) {
             savedRecyclerViewPosition = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
@@ -136,12 +143,12 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     // if (recipeStepNumber == -1) nestedScrollView.fullScroll(View.FOCUS_UP);
     // Update Recipe step outline after the recyclerview has drawn
     private void setLayoutObserver() {
-        recyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+        stepsRecyclerView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 changeViewHolderOutline(savedStepPosition);
-                recyclerView.smoothScrollToPosition(savedRecyclerViewPosition);
-                recyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                stepsRecyclerView.smoothScrollToPosition(savedRecyclerViewPosition);
+                stepsRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
     }
@@ -149,7 +156,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     @Override
     public void onSaveInstanceState(Bundle currentState) {
         Timber.i("savedStepPosition= " + savedStepPosition);
-        currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
+        currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) stepsRecyclerView.getLayoutManager()).findFirstVisibleItemPosition());
         currentState.putInt(RECIPE_STEP_POSITION, savedStepPosition);
     }
 
@@ -161,7 +168,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
         viewModel.setRecipeStep(recipeStep);
 
         if (!isTwoPane) {
-            ImageView image = recyclerView.getLayoutManager().findViewByPosition(stepClicked + 1).findViewById(R.id.step_image);
+            ImageView image = stepsRecyclerView.getLayoutManager().findViewByPosition(stepClicked + 1).findViewById(R.id.step_image);
             String transitionName = getString(R.string.step_detail_transition_name);
             ViewCompat.setTransitionName(image, transitionName);
 
@@ -177,17 +184,25 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
     }
 
+    @Override
+    public void onIngredientClicked(Ingredient ingredient, boolean isChecked) {
+        new ThreadExecutor().diskIO().execute(() -> {
+            RecipeDatabase.getDatabase(mContext).recipesDao().updateIngredientStatus(isChecked ? 1 : 0, ingredient.getIngredientId());
+        });
+
+    }
+
     private void changeViewHolderOutline(int stepClicked) {
         int adapterPosition = stepClicked + 1;
         if (adapterPosition == lastAdapterPosition) return;
 
-        if (recyclerView == null) return;
-        RecipeStepAdapter.RecipeStepViewHolder viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) recyclerView.findViewHolderForAdapterPosition(adapterPosition);
+        if (stepsRecyclerView == null) return;
+        RecipeStepAdapter.RecipeStepViewHolder viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) stepsRecyclerView.findViewHolderForAdapterPosition(adapterPosition);
         if (viewHolder == null) return;
         viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background_selected));
 
         if (lastAdapterPosition > 0) {
-            viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) recyclerView.findViewHolderForAdapterPosition(lastAdapterPosition);
+            viewHolder = (RecipeStepAdapter.RecipeStepViewHolder) stepsRecyclerView.findViewHolderForAdapterPosition(lastAdapterPosition);
             viewHolder.itemView.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.step_background));
         }
 

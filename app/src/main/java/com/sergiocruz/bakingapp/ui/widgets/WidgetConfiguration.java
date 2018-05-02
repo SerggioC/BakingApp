@@ -111,7 +111,7 @@ public class WidgetConfiguration extends AppCompatActivity implements RecipeAdap
             recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
         }
         recyclerView.setHasFixedSize(true);
-        RecipeAdapter adapter = new RecipeAdapter(this, this, this);
+        RecipeAdapter adapter = new RecipeAdapter(this, this, this, this);
         recyclerView.setAdapter(adapter);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);

@@ -96,11 +96,14 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     private SimpleExoPlayer mExoPlayer;
     private boolean isDetached = false;
     private Boolean hasSavedState = false;
-    private Uri mExoPlayerUri;
+
+    private Uri savedExoPlayerUri;
     private Boolean savedIsExoPlaying;
     private Long savedExoPosition;
+
     private Boolean isParentFullScreen = false;
     private boolean isEnteringFullScreen = false;
+    private boolean shouldAutoPlay = true;
 
     public RecipeStepFragment() {
     }
@@ -119,14 +122,19 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     private Bundle saveStateToBundle(@NonNull Bundle outState) {
-        outState.putParcelable(PLAYER_URI_KEY, mExoPlayerUri);
-        outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer == null ? true : mExoPlayer.getPlayWhenReady());
-        outState.putLong(PLAYER_POSITION_KEY, mExoPlayer == null ? 0 : mExoPlayer.getCurrentPosition());
+        outState.putParcelable(PLAYER_URI_KEY, savedExoPlayerUri);
+        outState.putBoolean(PLAYER_PLAYING_KEY, savedIsExoPlaying);
+        outState.putLong(PLAYER_POSITION_KEY, savedExoPosition);
         outState.putBoolean(ENTERING_FULL_SCREEN_KEY, isEnteringFullScreen);
         outState.putInt(RECIPE_STEP_NUMBER_KEY, mStepNumber);
         outState.putParcelable(RECIPE_STEP_KEY, mRecipeStep);
 
         return outState;
+    }
+
+    private void saveExoPlayerState() {
+        savedIsExoPlaying = mExoPlayer == null ? shouldAutoPlay : mExoPlayer.getPlayWhenReady();
+        savedExoPosition = mExoPlayer == null ? 0 : mExoPlayer.getCurrentPosition();
     }
 
     private void bindViews(View rootView) {
@@ -216,7 +224,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         super.onViewStateRestored(savedInstanceState);
         if (savedInstanceState != null) {
-            mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
+            savedExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY);
             savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY);
             isEnteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULL_SCREEN_KEY);
@@ -233,7 +241,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             isParentFullScreen = false;
         }
 
-        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
+        Timber.d("savedExoPlayerUri " + savedExoPlayerUri + "\n" +
                 "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
                 "savedExoPosition " + savedExoPosition + "\n");
     }
@@ -242,7 +250,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == FULL_SCREEN_REQUEST_CODE && resultCode == RESULT_OK && data != null) {
-            mExoPlayerUri = data.getParcelableExtra(PLAYER_URI_KEY);
+            savedExoPlayerUri = data.getParcelableExtra(PLAYER_URI_KEY);
             savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
             savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
             mStepNumber = data.getIntExtra(RECIPE_STEP_NUMBER_KEY, -1);
@@ -258,7 +266,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             isParentFullScreen = false;
         }
 
-        Timber.d("mExoPlayerUri " + mExoPlayerUri + "\n" +
+        Timber.d("savedExoPlayerUri " + savedExoPlayerUri + "\n" +
                 "savedIsExoPlaying " + savedIsExoPlaying + "\n" +
                 "savedExoPosition " + savedExoPosition);
     }
@@ -268,7 +276,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         super.onResume();
 
         if (hasSavedState) {
-            loadAndPlayVideo(mContext, mExoPlayerUri, savedExoPosition, savedIsExoPlaying);
+            loadAndPlayVideo(mContext, savedExoPlayerUri, savedExoPosition, savedIsExoPlaying);
             updateFragmentUI(viewModel.getRecipeStep().getValue());
             hasSavedState = false;
         }
@@ -300,7 +308,7 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     public void loadAndPlayVideo(Context context, Uri uri, Long position, Boolean playWhenReady) {
-        mExoPlayerUri = uri;
+        savedExoPlayerUri = uri;
         if (mExoPlayer == null) setupExoPlayer();
         mExoPlayer.prepare(getMediaSource(context, uri));
         mExoPlayer.seekTo(position);
@@ -308,8 +316,10 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     }
 
     private void enterFullscreen() {
+        saveExoPlayerState();
+
         // Don't enter fullscreen if no video selected or empty Uri.
-        if (TextUtils.isEmpty(mExoPlayerUri == null ? null : mExoPlayerUri.toString())) return;
+        if (TextUtils.isEmpty(savedExoPlayerUri == null ? null : savedExoPlayerUri.toString())) return;
         isEnteringFullScreen = true;
 
         Intent intent = new Intent(mContext, FullScreenActivity.class);
@@ -390,15 +400,18 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     @Override
     public void onPause() {
         super.onPause();
+        saveExoPlayerState();
+        if (Util.SDK_INT <= 23) {
+            releaseVideoPlayer();
+        }
     }
 
     @Override
     public void onStop() {
-        if (mExoPlayer != null) {
-            // pause on background? If entering full Screen keep playing
-            mExoPlayer.setPlayWhenReady(isEnteringFullScreen);
-        }
         super.onStop();
+        if (Util.SDK_INT > 23) {
+            releaseVideoPlayer();
+        }
     }
 
     @Override

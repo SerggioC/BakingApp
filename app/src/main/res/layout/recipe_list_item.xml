@@ -41,6 +41,15 @@
             app:small_shine_color="@color/pink_shine"
             app:small_shine_offset_angle="20"/>
 
+        <ImageView
+            android:id="@+id/recipe_image"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="@+id/recipe_name"
+            app:layout_constraintTop_toBottomOf="@+id/recipe_name"
+            tools:srcCompat="@mipmap/ic_launcher"/>
+
         <TextView
             android:id="@+id/recipe_name"
             android:layout_width="0dp"
@@ -57,11 +66,12 @@
             android:id="@+id/ingredient"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginStart="8dp"
             android:text="@string/ingredients"
             android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/recipe_name"/>
+            app:layout_constraintStart_toEndOf="@+id/recipe_image"
+            app:layout_constraintTop_toTopOf="@+id/recipe_image"/>
 
         <TextView
             android:id="@+id/servings"
@@ -70,7 +80,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/serving_size"
             android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/ingredient"
             app:layout_constraintTop_toBottomOf="@+id/ingredient"/>
 
         <TextView
@@ -80,7 +90,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/steps"
             android:textSize="20sp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/servings"
             app:layout_constraintTop_toBottomOf="@+id/servings"/>
 
         <TextView
@@ -91,7 +101,6 @@
             android:textAlignment="viewEnd"
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/barrier"
             app:layout_constraintTop_toTopOf="@+id/ingredient"
             tools:text="12"/>
 
@@ -103,7 +112,6 @@
             android:textAlignment="viewEnd"
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/barrier"
             app:layout_constraintTop_toTopOf="@+id/servings"
             tools:text="10"/>
 
@@ -115,22 +123,51 @@
             android:textAlignment="viewEnd"
             android:textSize="20sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/barrier"
             app:layout_constraintTop_toTopOf="@+id/steps"
             tools:text="20"/>
 
-        <android.support.constraint.Barrier
-            android:id="@+id/barrier"
+        <TextView
+            android:id="@+id/space1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/points_line"
+            android:layerType="software"
+            app:layout_constraintBottom_toBottomOf="@+id/ingredient"
+            app:layout_constraintEnd_toStartOf="@+id/ingredients_num"
+            app:layout_constraintStart_toEndOf="@+id/ingredient"/>
+
+        <TextView
+            android:id="@+id/space2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
             android:layout_marginStart="8dp"
-            app:barrierDirection="end"
-            app:constraint_referenced_ids="ingredient,steps,servings"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"/>
+            android:background="@drawable/points_line"
+            android:layerType="software"
+            app:layout_constraintBottom_toBottomOf="@+id/servings"
+            app:layout_constraintEnd_toStartOf="@+id/servings_num"
+            app:layout_constraintStart_toEndOf="@+id/servings"/>
+
+        <TextView
+            android:id="@+id/space3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/points_line"
+            android:layerType="software"
+            app:layout_constraintBottom_toBottomOf="@+id/steps"
+            app:layout_constraintEnd_toStartOf="@+id/steps_num"
+            app:layout_constraintStart_toEndOf="@+id/steps"/>
 
     </android.support.constraint.ConstraintLayout>
 

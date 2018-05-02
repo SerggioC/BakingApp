@@ -102,7 +102,7 @@ public class RecipeListFragment extends Fragment implements
 
         recyclerView = rootView.findViewById(R.id.recipe_list_recyclerview);
 
-        adapter = new RecipeAdapter(this, this, this);
+        adapter = new RecipeAdapter(mContext, this, this, this);
         setupRecyclerView(recyclerView, adapter);
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);

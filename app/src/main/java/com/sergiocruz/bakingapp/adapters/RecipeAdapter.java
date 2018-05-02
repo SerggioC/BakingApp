@@ -1,20 +1,26 @@
 package com.sergiocruz.bakingapp.adapters;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.sackcentury.shinebuttonlib.ShineButton;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.model.Ingredient;
 import com.sergiocruz.bakingapp.model.Recipe;
 import com.sergiocruz.bakingapp.model.RecipeStep;
+import com.sergiocruz.bakingapp.utils.AndroidUtils;
 
 import java.util.List;
 
+import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.sergiocruz.bakingapp.utils.AndroidUtils.animateItemViewSlideFromBottom;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
@@ -22,11 +28,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     private FavoriteClickListener mFavoriteClickListener;
     private FavoriteLongClickListener mFavoriteLongClickListener;
     private List<Recipe> recipesList;
+    private Context mContext;
 
-    public RecipeAdapter(RecipeClickListener mRecipeClickListener,
+    public RecipeAdapter(Context context,
+                         RecipeClickListener mRecipeClickListener,
                          FavoriteClickListener mFavoriteClickListener,
                          FavoriteLongClickListener mFavoriteLongClickListener) {
 
+        this.mContext = context;
         this.mRecipeClickListener = mRecipeClickListener;
         this.mFavoriteClickListener = mFavoriteClickListener;
         this.mFavoriteLongClickListener = mFavoriteLongClickListener;
@@ -49,6 +58,22 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     public void onBindViewHolder(final RecipeViewHolder holder, int position) {
         if (position < 0) return;
         Recipe recipe = recipesList.get(position);
+
+        String recipeImageUrl = recipe.getRecipeImage();
+        AndroidUtils.MimeType mimeType = AndroidUtils.getMymeTypeFromString(recipeImageUrl);
+        switch (mimeType) {
+            case IMAGE:
+                Glide.with(mContext)
+                        .load(recipeImageUrl)
+                        .transition(withCrossFade())
+                        .apply(new RequestOptions().error(R.mipmap.ic_launcher))
+                        .into(holder.recipeImage);
+            default:
+                Glide.with(mContext)
+                        .load(R.mipmap.ic_launcher)
+                        .transition(withCrossFade())
+                        .into(holder.recipeImage);
+        }
 
         String recipeName = recipe.getRecipeName();
         holder.recipeName.setText(TextUtils.isEmpty(recipeName) ? holder.itemView.getContext().getString(R.string.no_name_recipe) : recipeName);
@@ -87,6 +112,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     class RecipeViewHolder extends RecyclerView.ViewHolder {
+        final ImageView recipeImage;
         final TextView recipeName;
         final TextView numIngredients;
         final TextView numSteps;
@@ -95,6 +121,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
         public RecipeViewHolder(View itemView) {
             super(itemView);
+            recipeImage = itemView.findViewById(R.id.recipe_image);
             recipeName = itemView.findViewById(R.id.recipe_name);
             numIngredients = itemView.findViewById(R.id.ingredients_num);
             numSteps = itemView.findViewById(R.id.steps_num);

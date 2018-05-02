@@ -30,11 +30,13 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.util.Util;
 import com.sergiocruz.bakingapp.R;
 import com.sergiocruz.bakingapp.exoplayer.ExoCacheDataSourceFactory;
+import com.sergiocruz.bakingapp.model.RecipeStep;
 
 import timber.log.Timber;
 
-import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.RECIPE_STEP_POSITION;
+import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.RECIPE_STEP_NUMBER_KEY;
 import static com.sergiocruz.bakingapp.fragments.RecipeStepFragment.PLAYER_URI_KEY;
+import static com.sergiocruz.bakingapp.fragments.RecipeStepFragment.RECIPE_STEP_KEY;
 
 public class FullScreenActivity extends AppCompatActivity {
     public static final String PLAYER_PLAYING_KEY = "is_exo_player_playing_key";
@@ -48,6 +50,7 @@ public class FullScreenActivity extends AppCompatActivity {
     private SimpleExoPlayer mExoPlayer;
     private Uri mExoPlayerUri;
     private Integer savedStepPosition;
+    private RecipeStep savedRecipeStep;
 
     private void bindViews() {
         exoPlayerView = findViewById(R.id.exoPlayerView);
@@ -73,7 +76,9 @@ public class FullScreenActivity extends AppCompatActivity {
             mExoPlayerUri = savedInstanceState.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY, false);
             savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY, 0);
-            savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_POSITION);
+            savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_NUMBER_KEY);
+            savedRecipeStep = savedInstanceState.getParcelable(RECIPE_STEP_KEY);
+
             hasSavedState = true;
         }
     }
@@ -93,8 +98,11 @@ public class FullScreenActivity extends AppCompatActivity {
             mExoPlayerUri = extras.getParcelable(PLAYER_URI_KEY);
             savedIsExoPlaying = extras.getBoolean(PLAYER_PLAYING_KEY);
             savedExoPosition = extras.getLong(PLAYER_POSITION_KEY);
-            savedStepPosition = extras.getInt(RECIPE_STEP_POSITION);
+            savedStepPosition = extras.getInt(RECIPE_STEP_NUMBER_KEY);
+            savedRecipeStep = extras.getParcelable(RECIPE_STEP_KEY);
+
             hasSavedState = true;
+
             Timber.d("mExoPlayerUri= " + mExoPlayerUri +"\n" +
                     "savedIsExoPlaying= " + savedIsExoPlaying + "\n" +
                     "savedExoPosition= " + savedExoPosition);
@@ -148,8 +156,8 @@ public class FullScreenActivity extends AppCompatActivity {
         outState.putString(PLAYER_URI_KEY, mExoPlayerUri.toString());
         outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer.getPlayWhenReady());
         outState.putLong(PLAYER_POSITION_KEY, mExoPlayer.getCurrentPosition());
-        outState.putInt(RECIPE_STEP_POSITION, savedStepPosition);
-
+        outState.putInt(RECIPE_STEP_NUMBER_KEY, savedStepPosition);
+        outState.putParcelable(RECIPE_STEP_KEY, savedRecipeStep);
     }
 
     private void setDataToParent() {
@@ -157,7 +165,8 @@ public class FullScreenActivity extends AppCompatActivity {
         intent.putExtra(PLAYER_URI_KEY, mExoPlayerUri);
         intent.putExtra(PLAYER_PLAYING_KEY, mExoPlayer.getPlayWhenReady());
         intent.putExtra(PLAYER_POSITION_KEY, mExoPlayer.getCurrentPosition());
-        intent.putExtra(RECIPE_STEP_POSITION, savedStepPosition);
+        intent.putExtra(RECIPE_STEP_NUMBER_KEY, savedStepPosition);
+        intent.putExtra(RECIPE_STEP_KEY, savedRecipeStep);
         setResult(RESULT_OK, intent);
     }
 

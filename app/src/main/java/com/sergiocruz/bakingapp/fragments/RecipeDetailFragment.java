@@ -43,7 +43,7 @@ import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.RECYCLER_VIE
  */
 public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.RecipeStepClickListener, IngredientAdapter.IngredientClickListener {
     public static final int INVALID_POSITION = -1;
-    public static final String RECIPE_STEP_POSITION = "outstate_step_position";
+    public static final String RECIPE_STEP_NUMBER_KEY = "outstate_step_position";
     /**
      * The fragment argument representing the recipe item
      * that this fragment represents.
@@ -128,7 +128,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
 
         if (savedInstanceState != null) {
             savedRecyclerViewPosition = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
-            savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_POSITION);
+            savedStepPosition = savedInstanceState.getInt(RECIPE_STEP_NUMBER_KEY);
             viewModel.setRecipeStepNumber(savedStepPosition);
             hasSavedState = true;
         } else {
@@ -149,6 +149,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
                 changeViewHolderOutline(savedStepPosition);
                 stepsRecyclerView.smoothScrollToPosition(savedRecyclerViewPosition);
                 stepsRecyclerView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                hasSavedState = false;
             }
         });
     }
@@ -157,7 +158,7 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     public void onSaveInstanceState(Bundle currentState) {
         Timber.i("savedStepPosition= " + savedStepPosition);
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) stepsRecyclerView.getLayoutManager()).findFirstVisibleItemPosition());
-        currentState.putInt(RECIPE_STEP_POSITION, savedStepPosition);
+        currentState.putInt(RECIPE_STEP_NUMBER_KEY, savedStepPosition);
     }
 
     @Override

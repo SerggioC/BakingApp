@@ -67,7 +67,7 @@ import static android.app.Activity.RESULT_OK;
 import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_PLAYING_KEY;
 import static com.sergiocruz.bakingapp.activities.FullScreenActivity.PLAYER_POSITION_KEY;
-import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.RECIPE_STEP_POSITION;
+import static com.sergiocruz.bakingapp.fragments.RecipeDetailFragment.RECIPE_STEP_NUMBER_KEY;
 import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.FAVORITES;
 import static com.sergiocruz.bakingapp.fragments.RecipeListFragment.ONLINE;
 import static com.sergiocruz.bakingapp.utils.AndroidUtils.MimeType.VIDEO;
@@ -80,11 +80,13 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
     public static final String PLAYER_URI_KEY = "key_exoplayer_uri";
     private static final String CHANNEL_ID = "lets_bake_notification_channel_id";
     public static final String ENTERING_FULL_SCREEN_KEY = "key_app_entering_full_screen";
+    public static final String RECIPE_STEP_KEY = "key_recipe_step";
     private static MediaSessionCompat mMediaSession;
     private Context mContext;
     private ActivityViewModel viewModel;
-    private List<RecipeStep> stepsList;
-    private Integer stepNumber;
+    private List<RecipeStep> mStepsList;
+    private Integer mStepNumber;
+    private RecipeStep mRecipeStep;
     private TextView stepDetailTV;
     private PlayerView exoPlayerView;
     private ImageButton nextButton;
@@ -121,7 +123,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         outState.putBoolean(PLAYER_PLAYING_KEY, mExoPlayer == null ? true : mExoPlayer.getPlayWhenReady());
         outState.putLong(PLAYER_POSITION_KEY, mExoPlayer == null ? 0 : mExoPlayer.getCurrentPosition());
         outState.putBoolean(ENTERING_FULL_SCREEN_KEY, isEnteringFullScreen);
-        outState.putInt(RECIPE_STEP_POSITION, stepNumber);
+        outState.putInt(RECIPE_STEP_NUMBER_KEY, mStepNumber);
+        outState.putParcelable(RECIPE_STEP_KEY, mRecipeStep);
 
         return outState;
     }
@@ -171,14 +174,17 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             viewModel = ActivityViewModel.getInstance(this, getFavorites, hasInternet);
 
         if (!hasSavedState)
-            stepNumber = viewModel.getRecipeStepNumber().getValue();
+            mStepNumber = viewModel.getRecipeStepNumber().getValue();
 
-        viewModel.getRecipe().observe(this, recipe -> stepsList = recipe.getStepsList());
+        viewModel.getRecipe().observe(this, recipe -> mStepsList = recipe.getStepsList());
         viewModel.getRecipeStep().observe(this, recipeStep -> {
             if (recipeStep == null) return;
-            stepNumber = viewModel.getRecipeStepNumber().getValue();
+            mRecipeStep = recipeStep;
+            mStepNumber = viewModel.getRecipeStepNumber().getValue();
+
             Timber.i("hasSavedState " + hasSavedState + "\n" +
                     "isParentFullScreen " + isParentFullScreen);
+
             if (!hasSavedState && !isParentFullScreen) {
                 String videoUrl = recipeStep.getVideoUrl();
                 Uri videoUri = Uri.parse("");
@@ -214,7 +220,11 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             savedIsExoPlaying = savedInstanceState.getBoolean(PLAYER_PLAYING_KEY);
             savedExoPosition = savedInstanceState.getLong(PLAYER_POSITION_KEY);
             isEnteringFullScreen = savedInstanceState.getBoolean(ENTERING_FULL_SCREEN_KEY);
-            stepNumber = savedInstanceState.getInt(RECIPE_STEP_POSITION, -1);
+            mStepNumber = savedInstanceState.getInt(RECIPE_STEP_NUMBER_KEY, -1);
+            mRecipeStep = savedInstanceState.getParcelable(RECIPE_STEP_KEY);
+
+            viewModel.setRecipeStepNumber(mStepNumber);
+            viewModel.setRecipeStep(mRecipeStep);
 
             hasSavedState = true;
             isParentFullScreen = false;
@@ -235,7 +245,11 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
             mExoPlayerUri = data.getParcelableExtra(PLAYER_URI_KEY);
             savedIsExoPlaying = data.getBooleanExtra(PLAYER_PLAYING_KEY, false);
             savedExoPosition = data.getLongExtra(PLAYER_POSITION_KEY, 0);
-            stepNumber = data.getIntExtra(RECIPE_STEP_POSITION, -1);
+            mStepNumber = data.getIntExtra(RECIPE_STEP_NUMBER_KEY, -1);
+            mRecipeStep = data.getParcelableExtra(RECIPE_STEP_KEY);
+
+            viewModel.setRecipeStepNumber(mStepNumber);
+            viewModel.setRecipeStep(mRecipeStep);
 
             hasSavedState = true;
             isParentFullScreen = true;
@@ -312,49 +326,49 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
         updateFragmentUI(recipeStep);
 
         nextButton.setOnClickListener(v -> {
-            int nextStepNumber = stepNumber + 1;
-            if (nextStepNumber > stepsList.size() - 1) return;
+            int nextStepNumber = mStepNumber + 1;
+            if (nextStepNumber > mStepsList.size() - 1) return;
             viewModel.setRecipeStepNumber(nextStepNumber);
-            viewModel.setRecipeStep(stepsList.get(nextStepNumber));
+            viewModel.setRecipeStep(mStepsList.get(nextStepNumber));
             toggleNavigationButtons(nextStepNumber);
         });
 
         previousButton.setOnClickListener(v -> {
-            int previousStepNumber = stepNumber - 1;
+            int previousStepNumber = mStepNumber - 1;
             if (previousStepNumber < 0) return;
             viewModel.setRecipeStepNumber(previousStepNumber);
-            viewModel.setRecipeStep(stepsList.get(previousStepNumber));
+            viewModel.setRecipeStep(mStepsList.get(previousStepNumber));
             toggleNavigationButtons(previousStepNumber);
         });
     }
 
     private void toggleNavigationButtons(int stepNumber) {
-        if (stepNumber > 0 && stepNumber < stepsList.size() - 1) {
+        if (stepNumber > 0 && stepNumber < mStepsList.size() - 1) {
             previousButton.setVisibility(View.VISIBLE);
             nextButton.setVisibility(View.VISIBLE);
         } else if (stepNumber == 0) {
             previousButton.setVisibility(View.INVISIBLE);
             nextButton.setVisibility(View.VISIBLE);
-        } else if (stepNumber == stepsList.size() - 1) {
+        } else if (stepNumber == mStepsList.size() - 1) {
             previousButton.setVisibility(View.VISIBLE);
             nextButton.setVisibility(View.INVISIBLE);
         }
     }
 
     private void updateFragmentUI(RecipeStep recipeStep) {
-        if (recipeStep == null || stepNumber < 0) {
+        if (recipeStep == null || mStepNumber < 0) {
             stepDetailTV.setText(R.string.select_step);
         } else {
             String shortDesc = recipeStep.getShortDesc();
             String description = recipeStep.getDescription();
             String text;
-            if (stepNumber == 0) {
+            if (mStepNumber == 0) {
                 text = shortDesc.equals(description) ? shortDesc : shortDesc + "\n" + description;
             } else {
                 String stepNumberTextStr = getString(R.string.step_number);
                 text = shortDesc.equals(description) ?
-                        stepNumberTextStr + " " + stepNumber + "\n" + shortDesc :
-                        stepNumberTextStr + " " + stepNumber + "\n" + shortDesc + "\n" +
+                        stepNumberTextStr + " " + mStepNumber + "\n" + shortDesc :
+                        stepNumberTextStr + " " + mStepNumber + "\n" + shortDesc + "\n" +
                         description;
             }
             stepDetailTV.setText(text);

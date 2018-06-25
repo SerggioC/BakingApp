@@ -31,3 +31,6 @@ https://www.flaticon.com/free-icon/chef_481486#term=chef%20hat&page=1&position=1
 
 Exoplayer fullscreen based on the idea>
 https://medium.com/tall-programmer/fullscreen-functionality-with-android-exoplayer-5fddad45509f
+
+TODO update font
+https://fonts.google.com/?category=Handwriting&selection.family=Sacramento

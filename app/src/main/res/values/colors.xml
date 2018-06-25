@@ -3,6 +3,7 @@
     <color name="colorPrimary">#f9d9ad</color>
     <color name="colorPrimaryDark">#edb96e</color>
     <color name="colorAccent">#f61704</color>
+    <color name="brown400">#8d6e63</color>
     <color name="brown500">#795548</color>
     <color name="brown700">#5d4037</color>
     <color name="brown700T">#e85d4037</color>

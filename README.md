@@ -1,8 +1,11 @@
 # BakingApp
 Udacity Android Developer Nanodegree Program Baking App Project
 
+
 Tablet functionality video preview on Youtube:
 https://youtu.be/sRH0Ywl2pgE
+
+## Tablet screenshots
 
 No data available screen
 ![device-2018-08-09-204001](https://user-images.githubusercontent.com/21109275/43921857-f08cf72c-9c14-11e8-8417-8a1261213f19.png)
@@ -16,7 +19,7 @@ Recipe Details Screen
 Recipe Details Screen
 ![device-2018-08-09-204122](https://user-images.githubusercontent.com/21109275/43921859-f0f3d88e-9c14-11e8-8629-25e7e13b651a.png)
 
-Widget on home scren
+Widget on home screen
 ![device-2018-08-09-204218](https://user-images.githubusercontent.com/21109275/43921861-f181d616-9c14-11e8-90d0-4147105fac87.png)
 
 

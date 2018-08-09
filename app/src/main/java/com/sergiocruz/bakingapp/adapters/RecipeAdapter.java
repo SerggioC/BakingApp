@@ -23,7 +23,9 @@ import java.util.List;
 import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade;
 import static com.sergiocruz.bakingapp.utils.AndroidUtils.animateItemViewSlideFromBottom;
 
-public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
+public class RecipeAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_EMPTY = -1;
+    private static final int TYPE_RECIPE = 0;
     private RecipeClickListener mRecipeClickListener;
     private FavoriteClickListener mFavoriteClickListener;
     private FavoriteLongClickListener mFavoriteLongClickListener;
@@ -48,18 +50,27 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     @Override
-    public RecipeViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.recipe_list_item, parent, false);
-        return new RecipeViewHolder(view);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == TYPE_EMPTY) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.empty_item, parent, false);
+            return new EmptyViewHolder(view);
+        } else {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.recipe_list_item, parent, false);
+            return new RecipeViewHolder(view);
+        }
     }
 
     @Override
-    public void onBindViewHolder(final RecipeViewHolder holder, int position) {
-        if (position < 0) return;
+    public void onBindViewHolder(final RecyclerView.ViewHolder viewHolder, int position) {
+        if (position < 0 || getItemViewType(position) == TYPE_EMPTY) return;
+
         Recipe recipe = recipesList.get(position);
 
-        String recipeImageUrl = recipe.getRecipeImage();
+        RecipeViewHolder holder = (RecipeViewHolder) viewHolder;
+
+                String recipeImageUrl = recipe.getRecipeImage();
         AndroidUtils.MimeType mimeType = AndroidUtils.getMymeTypeFromString(recipeImageUrl);
         switch (mimeType) {
             case IMAGE:
@@ -93,10 +104,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         animateItemViewSlideFromBottom(holder.itemView, 50 * position);
     }
 
-
     @Override
     public int getItemCount() {
         return recipesList == null ? 0 : recipesList.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return getItemCount() == 0 ? TYPE_EMPTY : TYPE_RECIPE;
     }
 
     public interface RecipeClickListener {
@@ -111,6 +126,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         void onFavoriteLongClicked(Recipe recipe, int position);
     }
 
+    class EmptyViewHolder extends RecyclerView.ViewHolder {
+        final TextView infoTextView;
+
+        EmptyViewHolder(View itemView) {
+            super(itemView);
+            infoTextView = itemView.findViewById(R.id.info_textView);
+        }
+    }
+
     class RecipeViewHolder extends RecyclerView.ViewHolder {
         final ImageView recipeImage;
         final TextView recipeName;
@@ -119,7 +143,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         final TextView numServings;
         final ShineButton shineButton;
 
-        public RecipeViewHolder(View itemView) {
+        RecipeViewHolder(View itemView) {
             super(itemView);
             recipeImage = itemView.findViewById(R.id.recipe_image);
             recipeName = itemView.findViewById(R.id.recipe_name);

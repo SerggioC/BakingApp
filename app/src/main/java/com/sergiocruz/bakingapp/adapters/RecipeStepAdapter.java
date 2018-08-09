@@ -1,7 +1,8 @@
 package com.sergiocruz.bakingapp.adapters;
 
 import android.content.Context;
-import android.os.Build;
+import android.support.annotation.NonNull;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -25,6 +26,7 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 import static com.sergiocruz.bakingapp.utils.AndroidUtils.animateItemViewSlideFromBottom;
 
 public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private static final int TYPE_EMPTY = -1;
     private static final int TYPE_STEP_HEADER = 0;
     private static final int TYPE_STEP = 1;
 
@@ -44,6 +46,10 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemViewType(int position) {
+        if (getItemCount() == 0) {
+            return TYPE_EMPTY;
+        }
+
         if (position == 0) {
             return TYPE_STEP_HEADER;
         } else {
@@ -51,34 +57,43 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         }
     }
 
+    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        RecyclerView.ViewHolder holder = null;
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        RecyclerView.ViewHolder holder;
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         switch (viewType) {
+            case TYPE_EMPTY: {
+                View view = inflater.inflate(R.layout.empty_item, parent, false);
+                holder = new EmptyViewHolder(view);
+                break;
+            }
             case TYPE_STEP_HEADER: {
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.recipe_steps_headview_item, parent, false);
+                View view = inflater.inflate(R.layout.recipe_steps_headview_item, parent, false);
                 holder = new HeaderStepViewHolder(view);
                 break;
             }
             case TYPE_STEP: {
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.recipe_step_list_item, parent, false);
+                View view = inflater.inflate(R.layout.recipe_step_list_item, parent, false);
                 holder = new RecipeStepViewHolder(view);
                 break;
+            }
+            default: {
+                View view = inflater.inflate(R.layout.empty_item, parent, false);
+                holder = new EmptyViewHolder(view);
             }
         }
         return holder;
     }
 
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
         int itemViewType = getItemViewType(position);
 
         if (itemViewType == TYPE_STEP_HEADER) {
             HeaderStepViewHolder viewHolder = (HeaderStepViewHolder) holder;
             int size = recipeStepList == null ? 0 : recipeStepList.size();
-            viewHolder.stepsNum.setText(size + "");
+            viewHolder.stepsNum.setText(String.valueOf(size));
 
         } else if (itemViewType == TYPE_STEP) {
             RecipeStepViewHolder viewHolder = (RecipeStepViewHolder) holder;
@@ -87,7 +102,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             String thumbnailUrl = recipeStep.getThumbnailUrl();
             AndroidUtils.MimeType mimeType = AndroidUtils.getMymeTypeFromString(thumbnailUrl);
-            Timber.i("type from url= " + mimeType);
+            Timber.i("type from url= %s", mimeType);
 
             switch (mimeType) {
                 case IMAGE:
@@ -106,9 +121,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             String shortDesc = recipeStep.getShortDesc();
             String description = TextUtils.isEmpty(shortDesc) ? context.getString(R.string.view_step) + " " + position : shortDesc;
             viewHolder.recipeStepResume.setText(description);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                viewHolder.recipeImageIcon.setTransitionName("transition" + holder.getAdapterPosition());
-            }
+            ViewCompat.setTransitionName(viewHolder.recipeImageIcon, "transition" + holder.getAdapterPosition());
         }
 
         animateItemViewSlideFromBottom(holder.itemView, 50 * position);
@@ -117,11 +130,20 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public int getItemCount() {
-        return recipeStepList == null ? 0 : recipeStepList.size() + 1;
+        return recipeStepList == null ? 0 : recipeStepList.size() + 1; /* +1 for header */
     }
 
     public interface RecipeStepClickListener {
         void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked, ImageView imageView);
+    }
+
+    public class EmptyViewHolder extends RecyclerView.ViewHolder {
+        final TextView infoTextView;
+
+        EmptyViewHolder(View itemView) {
+            super(itemView);
+            infoTextView = itemView.findViewById(R.id.info_textView);
+        }
     }
 
     public class HeaderStepViewHolder extends RecyclerView.ViewHolder {

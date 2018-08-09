@@ -20,4 +20,8 @@
     <string name="click_to_save">Click to add to favorites</string>
     <string name="select_recipe">Select recipe to display as a widget</string>
     <string name="view_step">View Recipe Step</string>
+    <string name="no_information_available">No information available</string>
+    <string name="info_icon">Information Icon</string>
+    <string name="no_recipes_available">I have no recipes available...</string>
+    <string name="check_your_internet_connection">Check your Internet connection and/or add some Recipes to your Favorites</string>
 </resources>

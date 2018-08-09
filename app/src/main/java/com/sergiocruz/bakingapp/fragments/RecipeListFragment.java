@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -53,7 +54,6 @@ public class RecipeListFragment extends Fragment implements
     private ActivityViewModel viewModel;
     private RecyclerView recyclerView;
     private RecipeAdapter adapter;
-    private boolean isTwoPane;
     private Menu mMenu;
 
     /**
@@ -87,9 +87,11 @@ public class RecipeListFragment extends Fragment implements
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragment_recipe_list, container, false);
+
+        View noDataView = rootView.findViewById(R.id.no_data);
 
         mContext = getContext();
 
@@ -97,8 +99,6 @@ public class RecipeListFragment extends Fragment implements
         android.support.v7.widget.Toolbar toolbar = rootView.findViewById(R.id.toolbar);
         ((TextView) toolbar.findViewById(R.id.toolbar_text)).setShadowLayer(10, 4, 4, R.color.cardview_dark_background);
         ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
-
-        isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
 
         recyclerView = rootView.findViewById(R.id.recipe_list_recyclerview);
 
@@ -117,7 +117,13 @@ public class RecipeListFragment extends Fragment implements
              *  @param recipesList The new data */
             @Override
             public void onChanged(@Nullable List<Recipe> recipesList) {
+                if (recipesList == null || recipesList.isEmpty()) {
+                    noDataView.setVisibility(View.VISIBLE);
+                } else {
+                    noDataView.setVisibility(View.GONE);
+                }
                 adapter.swapRecipesData(recipesList);
+
             }
         });
 
@@ -127,7 +133,8 @@ public class RecipeListFragment extends Fragment implements
 
                 if (savedInstanceState != null) {
                     int position = savedInstanceState.getInt(RECYCLER_VIEW_POSITION);
-                    recyclerView.smoothScrollToPosition(position);
+                    if (position > 0)
+                        recyclerView.smoothScrollToPosition(position);
                 }
 
                 // Set Idle state to true after all done
@@ -145,7 +152,7 @@ public class RecipeListFragment extends Fragment implements
     }
 
     @Override
-    public void onSaveInstanceState(Bundle currentState) {
+    public void onSaveInstanceState(@NonNull Bundle currentState) {
         currentState.putInt(RECYCLER_VIEW_POSITION, ((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition());
     }
 
@@ -212,11 +219,9 @@ public class RecipeListFragment extends Fragment implements
     }
 
     private void setupRecyclerView(RecyclerView recyclerView, RecipeAdapter adapter) {
-        if (isTwoPane) {
-            recyclerView.setLayoutManager(new GridLayoutManager(mContext, GRID_SPAN_COUNT, GridLayoutManager.VERTICAL, false));
-        } else {
-            recyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL, false));
-        }
+        int spanCount = getResources().getInteger(R.integer.grid_span_count);
+        GridLayoutManager layoutManager = new GridLayoutManager(mContext, spanCount, GridLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(layoutManager);
         recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(adapter);
     }

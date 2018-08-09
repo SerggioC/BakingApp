@@ -22,7 +22,17 @@ Recipe Details Screen
 Widget on home screen
 ![device-2018-08-09-204218](https://user-images.githubusercontent.com/21109275/43921861-f181d616-9c14-11e8-90d0-4147105fac87.png)
 
+## Phone screenshots
 
+![device-2018-08-09-205422](https://user-images.githubusercontent.com/21109275/43922569-11e23ade-9c17-11e8-9eef-00d48a6c17b1.png)
+![device-2018-08-09-205445](https://user-images.githubusercontent.com/21109275/43922570-12367ebe-9c17-11e8-943f-5ae0ec921545.png)
+![device-2018-08-09-205524](https://user-images.githubusercontent.com/21109275/43922571-12644cea-9c17-11e8-9d58-bf4c480251cb.png)
+![device-2018-08-09-205551](https://user-images.githubusercontent.com/21109275/43922574-12fca01c-9c17-11e8-8e9c-86f72b80b3f0.png)
+![device-2018-08-09-205609](https://user-images.githubusercontent.com/21109275/43922575-134cf3d2-9c17-11e8-86bb-598755e771f1.png)
+![device-2018-08-09-205629](https://user-images.githubusercontent.com/21109275/43922576-137b9eee-9c17-11e8-9cee-833226f0d83d.png)
+![device-2018-08-09-205654](https://user-images.githubusercontent.com/21109275/43922577-13ab9806-9c17-11e8-9c92-98c8826f3c29.png)
+![device-2018-08-09-205737](https://user-images.githubusercontent.com/21109275/43922578-13dc6936-9c17-11e8-9c4e-c90fc6543a68.png)
+![device-2018-08-09-205840](https://user-images.githubusercontent.com/21109275/43922579-140a314a-9c17-11e8-8d25-781008334c17.png)
 
 
 Project Overview

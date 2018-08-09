@@ -1,6 +1,21 @@
 # BakingApp
 Udacity Android Developer Nanodegree Program Baking App Project
 
+Main Technologies Used:
+* Fragments for multiple layout support 
+* MVVM design pattern
+* ViewModel
+* LiveData
+* Room database
+* Retrofit API interface
+* GSON
+* Exoplayer video playback
+* Glide image loading and caching
+* Constraint Layout
+* CardView
+* RecyclerView
+* Shared Element Transitions
+* Custom Layout Animations
 
 Tablet functionality video preview on Youtube:
 https://youtu.be/sRH0Ywl2pgE

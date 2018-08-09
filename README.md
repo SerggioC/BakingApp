@@ -1,7 +1,7 @@
 # BakingApp
 Udacity Android Developer Nanodegree Program Baking App Project
 
-Youtube functionality preview: 
+Tablet functionality preview on Youtube:
 https://youtu.be/sRH0Ywl2pgE
 
 

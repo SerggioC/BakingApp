@@ -1,6 +1,7 @@
 package com.sergiocruz.bakingapp.adapters;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -105,6 +106,9 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
             String shortDesc = recipeStep.getShortDesc();
             String description = TextUtils.isEmpty(shortDesc) ? context.getString(R.string.view_step) + " " + position : shortDesc;
             viewHolder.recipeStepResume.setText(description);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                viewHolder.recipeImageIcon.setTransitionName("transition" + holder.getAdapterPosition());
+            }
         }
 
         animateItemViewSlideFromBottom(holder.itemView, 50 * position);
@@ -117,7 +121,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     }
 
     public interface RecipeStepClickListener {
-        void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked);
+        void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked, ImageView imageView);
     }
 
     public class HeaderStepViewHolder extends RecyclerView.ViewHolder {
@@ -140,7 +144,7 @@ public class RecipeStepAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             itemView.setOnClickListener(view -> {
                 int stepClicked = getAdapterPosition() - 1;
-                mRecipeStepClickListener.onRecipeStepClicked(recipeStepList.get(stepClicked), stepClicked); // correct array index
+                mRecipeStepClickListener.onRecipeStepClicked(recipeStepList.get(stepClicked), stepClicked, recipeImageIcon); // correct array index
             });
         }
     }

@@ -24,9 +24,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        TimberImplementation.init();
-
         if (savedInstanceState == null) {
+            TimberImplementation.init();
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.recipe_list_fragment_container, new RecipeListFragment())
                     .commit();

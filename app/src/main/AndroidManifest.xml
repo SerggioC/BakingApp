@@ -47,6 +47,13 @@
                 android:value=".activities.RecipeDetailActivity"/>
         </activity>
 
+        <receiver
+            android:name=".fragments.RecipeStepFragment$MediaReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+            </intent-filter>
+        </receiver>
+
         <!-- Widget configuration activity ( select recipe) -->
         <activity
             android:name="com.sergiocruz.bakingapp.ui.widgets.WidgetConfiguration"
@@ -56,13 +63,6 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
         </activity>
-
-        <receiver
-            android:name=".fragments.RecipeStepFragment$MediaReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON"/>
-            </intent-filter>
-        </receiver>
 
         <!-- Widgets Provider -->
         <receiver

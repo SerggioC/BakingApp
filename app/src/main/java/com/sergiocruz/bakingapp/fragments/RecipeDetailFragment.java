@@ -162,21 +162,23 @@ public class RecipeDetailFragment extends Fragment implements RecipeStepAdapter.
     }
 
     @Override
-    public void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked) {
+    public void onRecipeStepClicked(RecipeStep recipeStep, int stepClicked, ImageView imageView) {
         hasSavedState = false;
         savedStepPosition = stepClicked;
         viewModel.setRecipeStepNumber(stepClicked);
         viewModel.setRecipeStep(recipeStep);
 
         if (!isTwoPane) {
-            ImageView image = stepsRecyclerView.getLayoutManager().findViewByPosition(stepClicked + 1).findViewById(R.id.step_image);
-            String transitionName = getString(R.string.step_detail_transition_name);
-            ViewCompat.setTransitionName(image, transitionName);
+//            ImageView image = stepsRecyclerView.getLayoutManager().findViewByPosition(stepClicked + 1).findViewById(R.id.step_image);
+//            String transitionName = getString(R.string.step_detail_transition_name);
+
+            String transitionName = ViewCompat.getTransitionName(imageView);
+            ViewCompat.setTransitionName(imageView, transitionName);
 
             RecipeStepFragment recipeStepFragment = new RecipeStepFragment();
             getFragmentManager()
                     .beginTransaction()
-                    .addSharedElement(image, transitionName)
+                    .addSharedElement(imageView, transitionName)
                     .replace(R.id.recipe_detail_fragment_container, recipeStepFragment)
                     .addToBackStack(null)
                     .commit();

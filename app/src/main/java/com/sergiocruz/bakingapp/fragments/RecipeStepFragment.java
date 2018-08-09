@@ -24,6 +24,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.SurfaceView;
@@ -183,6 +184,8 @@ public class RecipeStepFragment extends Fragment implements Player.EventListener
 
         if (!hasSavedState)
             mStepNumber = viewModel.getRecipeStepNumber().getValue();
+
+        ViewCompat.setTransitionName(exoPlayerView, "transition" + (mStepNumber + 1));
 
         viewModel.getRecipe().observe(this, recipe -> mStepsList = recipe.getStepsList());
         viewModel.getRecipeStep().observe(this, recipeStep -> {

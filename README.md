@@ -39,15 +39,16 @@ Widget on home screen
 
 ## Phone screenshots
 
-![device-2018-08-09-205422](https://user-images.githubusercontent.com/21109275/43926369-faed4886-9c21-11e8-8f17-546a6361cfae.png)
-![device-2018-08-09-205445](https://user-images.githubusercontent.com/21109275/43926370-fb1c8e2a-9c21-11e8-83b8-7054f594ec11.png)
-![device-2018-08-09-205524](https://user-images.githubusercontent.com/21109275/43926371-fb48efa6-9c21-11e8-8722-ae4fd4ae6a03.png)
-![device-2018-08-09-205551](https://user-images.githubusercontent.com/21109275/43926450-3a0d8b48-9c22-11e8-8ae3-5d9202d16691.png)
-![device-2018-08-09-205609](https://user-images.githubusercontent.com/21109275/43926375-fbbb2350-9c21-11e8-9994-1f8db76fdab2.png)
-![device-2018-08-09-205629](https://user-images.githubusercontent.com/21109275/43926377-fc3be940-9c21-11e8-9087-e3a1b9014952.png)
-![device-2018-08-09-205654](https://user-images.githubusercontent.com/21109275/43926379-fc69cc34-9c21-11e8-872c-77bf78b52468.png)
-![device-2018-08-09-205737](https://user-images.githubusercontent.com/21109275/43926380-fcf9e7b0-9c21-11e8-9248-569ff7d9490b.png)
-![device-2018-08-09-205840](https://user-images.githubusercontent.com/21109275/43926382-fd29712e-9c21-11e8-8864-24cfd266214f.png)
+![device-2018-08-09-205551](https://user-images.githubusercontent.com/21109275/43933266-a052b7de-9c40-11e8-8314-71763043b56e.png)
+![device-2018-08-09-205609](https://user-images.githubusercontent.com/21109275/43933267-a0834aa2-9c40-11e8-8441-20473f462842.png)
+![device-2018-08-09-205629](https://user-images.githubusercontent.com/21109275/43933268-a0b0d74c-9c40-11e8-8025-7de012de1a9c.png)
+![device-2018-08-09-205654](https://user-images.githubusercontent.com/21109275/43933269-a0e0a486-9c40-11e8-9ba1-36d5cb34e370.png)
+![device-2018-08-09-205737](https://user-images.githubusercontent.com/21109275/43933270-a158adfa-9c40-11e8-9041-75da8bc1a33b.png)
+![device-2018-08-09-205840](https://user-images.githubusercontent.com/21109275/43933271-a1eb1f78-9c40-11e8-8d9e-fab9607e8572.png)
+![device-2018-08-09-205422](https://user-images.githubusercontent.com/21109275/43933272-a221b20e-9c40-11e8-982b-74f582ff4d1b.png)
+![device-2018-08-09-205445](https://user-images.githubusercontent.com/21109275/43933273-a25130a6-9c40-11e8-85f1-6a7160140e98.png)
+![device-2018-08-09-205524](https://user-images.githubusercontent.com/21109275/43933274-a27f2f10-9c40-11e8-81e4-e88c7401e9c3.png)
+
 
 
 

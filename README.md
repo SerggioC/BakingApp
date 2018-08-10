@@ -45,8 +45,14 @@ Widget on home screen
 ![device-2018-08-09-205654](https://user-images.githubusercontent.com/21109275/43933269-a0e0a486-9c40-11e8-9ba1-36d5cb34e370.png)
 ![device-2018-08-09-205737](https://user-images.githubusercontent.com/21109275/43933270-a158adfa-9c40-11e8-9041-75da8bc1a33b.png)
 ![device-2018-08-09-205840](https://user-images.githubusercontent.com/21109275/43933271-a1eb1f78-9c40-11e8-8d9e-fab9607e8572.png)
+
+Full Screen Video (Exoplayer)
 ![device-2018-08-09-205422](https://user-images.githubusercontent.com/21109275/43933272-a221b20e-9c40-11e8-982b-74f582ff4d1b.png)
+
+Widget Configuration Activity
 ![device-2018-08-09-205445](https://user-images.githubusercontent.com/21109275/43933273-a25130a6-9c40-11e8-85f1-6a7160140e98.png)
+
+Widget on Home Screen
 ![device-2018-08-09-205524](https://user-images.githubusercontent.com/21109275/43933274-a27f2f10-9c40-11e8-81e4-e88c7401e9c3.png)
 
 

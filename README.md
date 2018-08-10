@@ -50,6 +50,7 @@ Full Screen Video (Exoplayer)
 ![device-2018-08-09-205654](https://user-images.githubusercontent.com/21109275/43933269-a0e0a486-9c40-11e8-9ba1-36d5cb34e370.png)
 
 Widget Configuration Activity and widget on Home Screen
+
 ![device-2018-08-09-205737](https://user-images.githubusercontent.com/21109275/43933270-a158adfa-9c40-11e8-9041-75da8bc1a33b.png)
 ![device-2018-08-09-205840](https://user-images.githubusercontent.com/21109275/43933271-a1eb1f78-9c40-11e8-8d9e-fab9607e8572.png)
 
